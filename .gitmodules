@@ -1,0 +1,4 @@
+[submodule "nopeee-site/themes/blowfish"]
+	path = nopeee-site/themes/blowfish
+	url = https://github.com/nunocoracao/blowfish.git
+	branch = main
