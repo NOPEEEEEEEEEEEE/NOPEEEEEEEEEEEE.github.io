@@ -78,13 +78,17 @@ jobs:
           restore-keys:
             hugo-
       - name: Build the site
-        run: |
+          run: |
+         OUT="${{ github.workspace }}/public"
+          rm -rf "$OUT"
           hugo \
-            --gc \
-            --minify \
-            --source nopeee-site --destination public \
-            --baseURL "${{ steps.pages.outputs.base_url }}/" \
-            --cacheDir "${{ runner.temp }}/hugo_cache"
+         --gc \
+         --minify \
+         --source nopeee-site \
+         --destination "$OUT" \
+         --baseURL "${{ steps.pages.outputs.base_url }}/" \
+         --cacheDir "${{ runner.temp }}/hugo_cache"
+
       - name: Cache save
         id: cache-save
         uses: actions/cache/save@v4
@@ -94,7 +98,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./public
+          path: ${{ github.workspace }}/public
   deploy:
     environment:
       name: github-pages
