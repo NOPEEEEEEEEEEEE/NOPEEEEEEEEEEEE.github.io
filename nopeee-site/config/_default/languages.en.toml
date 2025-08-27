@@ -2,7 +2,7 @@ disabled = false
 languageCode = "en"
 languageName = "English"
 weight = 1
-title = "Blowfish"
+title = "Bogdan Deparateanu"
 
 [params]
   displayName = "EN"
@@ -15,11 +15,11 @@ title = "Blowfish"
   # copyright = "Copy, _right?_ :thinking_face:"
 
  [params.author]
-   name = "Your name here"
-   email = "youremail@example.com"
-   image = "img/blowfish_logo.png"
+   name = "Bogdan Depărățeanu"
+   email = "bogdandeparateanu@gmail.com"
+   image = "https://avatars.githubusercontent.com/u/101334730?s=400&u=01c57c4cf13c19dbcaf66d57b1ff296bb416833d&v=4"
    imageQuality = 96
-   headline = "I'm only human"
+   headline = "Game & Graphics Programmer"
    bio = "A little bit about you"
 #   links = [
 #     { email = "mailto:hello@your_domain.com" },

@@ -29,7 +29,7 @@ enableEmoji = true
   category = "categories"
   author = "authors"
   series = "series"
-
+ 
 [sitemap]
   changefreq = 'daily'
   filename = 'sitemap.xml'

@@ -15,7 +15,7 @@ enableCodeCopy = false
 
 replyByEmail = false
 
-# mainSections = ["section1", "section2"]
+ mainSections = ["Projects"]
 # robots = ""
 
 disableImageOptimization = false
@@ -48,7 +48,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
 
 [homepage]
   layout = "profile" # valid options: page, profile, hero, card, background, custom
-  #homepageImage = "IMAGE.jpg" # used in: hero, and card
+  # homepageImage = "IMAGE.jpg" # used in: hero, and card 
   showRecent = false
   showRecentItems = 5
   showMoreLink = false
@@ -65,12 +65,12 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   showDateOnlyInArticle = false
   showDateUpdated = false
   showAuthor = true
-  # showAuthorBottom = false
-  showHero = false
-  # heroStyle = "basic" # valid options: basic, big, background, thumbAndBackground
+  showAuthorBottom = true
+  showHero = true
+  heroStyle = "basic" # valid options: basic, big, background, thumbAndBackground
   layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground
   layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
-  showBreadcrumbs = false
+  showBreadcrumbs = true
   showDraftLabel = true
   showEdit = false
   # editURL = "https://github.com/username/repo/"
@@ -80,7 +80,7 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   showPagination = true
   invertPagination = false
   showReadingTime = true
-  showTableOfContents = false
+  showTableOfContents = true
   # showRelatedContent = false
   # relatedContentLimit = 3
   showTaxonomies = false # use showTaxonomies OR showCategoryOnly, not both
@@ -89,18 +89,18 @@ forgejoDefaultServer = "https://v11.next.forgejo.org"
   showWordCount = true
   # sharingLinks = [ "linkedin", "twitter", "bluesky", "mastodon", "reddit", "pinterest", "facebook", "email", "whatsapp", "telegram", "line"]
   showZenMode = false
-
+ 
 [list]
-  showHero = false
-  # heroStyle = "background" # valid options: basic, big, background, thumbAndBackground
-  layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground
-  layoutBackgroundHeaderSpace = true # only used when heroStyle equals background
+  showHero = true
+  heroStyle = "background" # valid options: basic, big, background, thumbAndBackground
+  layoutBackgroundBlur = true # only used when heroStyle equals background or thumbAndBackground 
+  layoutBackgroundHeaderSpace = true # only used when heroStyle equals background 
   showBreadcrumbs = false
-  showSummary = false
+  showSummary = true
   showViews = false
   showLikes = false
   showTableOfContents = false
-  showCards = false
+  showCards = true
   orderByWeight = false
   groupByYear = true
   cardView = false
