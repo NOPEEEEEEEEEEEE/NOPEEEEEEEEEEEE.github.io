@@ -35,6 +35,10 @@ enableEmoji = true
   filename = 'sitemap.xml'
   priority = 0.5
 
+[caches]
+  [caches.images]
+    dir = ':cacheDir/images'
+
 [outputs]
   home = ["HTML", "RSS", "JSON"]
 
