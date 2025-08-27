@@ -78,7 +78,7 @@ jobs:
           restore-keys:
             hugo-
       - name: Build the site
-          run: |
+        run: |
          OUT="${{ github.workspace }}/public"
           rm -rf "$OUT"
           hugo \
