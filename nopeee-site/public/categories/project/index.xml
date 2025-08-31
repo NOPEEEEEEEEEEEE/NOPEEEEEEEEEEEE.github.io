@@ -9,7 +9,17 @@
     <managingEditor>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</managingEditor>
     <webMaster>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</webMaster>
     <copyright>© 2025 Bogdan Depărățeanu</copyright>
-    <lastBuildDate>Mon, 04 Sep 2023 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/categories/project/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 04 Sep 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/categories/project/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Owlet / PEPI engine</title>
+      <link>http://localhost:1313/projects/owlet/</link>
+      <pubDate>Wed, 04 Sep 2024 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/projects/owlet/</guid>
+      <description>RTS game made witha custom engine</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/owlet/cover.png" />
+    </item>
     
     <item>
       <title>2D Ray Tracer</title>
@@ -22,12 +32,22 @@
     </item>
     
     <item>
-      <title>2D RTS</title>
+      <title>DXR Hybrid Ray tracer</title>
+      <link>http://localhost:1313/projects/hybridraytracer/</link>
+      <pubDate>Mon, 04 Sep 2023 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/projects/hybridraytracer/</guid>
+      <description>A hybrid ray tracer built with DXR</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/hybridraytracer/cover.png" />
+    </item>
+    
+    <item>
+      <title>Galactic Goo </title>
       <link>http://localhost:1313/projects/galacticgoo/</link>
       <pubDate>Mon, 04 Sep 2023 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/galacticgoo/</guid>
-      <description>2D RTS tank game</description>
+      <description>Puzzle-platform game made with UE5</description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/galacticgoo/cover.png" />
     </item>
     
@@ -42,43 +62,13 @@
     </item>
     
     <item>
-      <title>2D RTS</title>
+      <title>3D RTS</title>
       <link>http://localhost:1313/projects/3drts/</link>
       <pubDate>Sun, 04 Sep 2022 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/3drts/</guid>
-      <description>2D RTS tank game</description>
-      
-    </item>
-    
-    <item>
-      <title>2D RTS</title>
-      <link>http://localhost:1313/projects/hybridraytracer/</link>
-      <pubDate>Sun, 04 Sep 2022 00:00:00 +0000</pubDate>
-      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/projects/hybridraytracer/</guid>
-      <description>2D RTS tank game</description>
-      
-    </item>
-    
-    <item>
-      <title>2D RTS</title>
-      <link>http://localhost:1313/projects/owlet/</link>
-      <pubDate>Sun, 04 Sep 2022 00:00:00 +0000</pubDate>
-      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/projects/owlet/</guid>
-      <description>2D RTS tank game</description>
-      
-    </item>
-    
-    <item>
-      <title>2D RTS</title>
-      <link>http://localhost:1313/projects/umbramortis/</link>
-      <pubDate>Sun, 04 Sep 2022 00:00:00 +0000</pubDate>
-      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/projects/umbramortis/</guid>
-      <description>2D RTS tank game</description>
-      
+      <description>3D RTS tank game on a raspbery PI</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/3drts/cover.png" />
     </item>
     
   </channel>
