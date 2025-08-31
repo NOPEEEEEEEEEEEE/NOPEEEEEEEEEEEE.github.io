@@ -1,11 +1,11 @@
 ---
-title: "Umbra Mortis"
-summary: "Multiplayer zombie FPS"
+title: "UE Color Tools Plugin"
+summary: "Work in Progress... - UE5 plugin with color tool (vectorscope, histogram, waveform)"
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
 #showSummary: true
-date: 2025-09-04
+date: 2025-08-06
 draft: false
 ---
 
