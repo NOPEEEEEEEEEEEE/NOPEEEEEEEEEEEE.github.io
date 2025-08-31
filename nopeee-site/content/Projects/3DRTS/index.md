@@ -1,6 +1,6 @@
 ---
-title: "2D RTS"
-summary: " 2D RTS tank game"
+title: "3D RTS"
+summary: " 3D RTS tank game on a raspbery PI"
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
@@ -9,4 +9,4 @@ date: 2022-09-04
 draft: false
 ---
 
-## 2D RTS
+## 3D RTS
