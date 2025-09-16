@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>SubPages on Bogdan Deparateanu</title>
+    <link>http://localhost:1313/subpages/</link>
+    <description>Recent content in SubPages on Bogdan Deparateanu</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <managingEditor>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</managingEditor>
+    <webMaster>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</webMaster>
+    <copyright>© 2025 Bogdan Depărățeanu</copyright>
+    <lastBuildDate>Wed, 04 Sep 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/subpages/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PEPI Renderer BUt cooler</title>
+      <link>http://localhost:1313/subpages/pepirenderer/</link>
+      <pubDate>Wed, 04 Sep 2024 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/subpages/pepirenderer/</guid>
+      <description>Custom Engine renderer</description>
+      
+    </item>
+    
+  </channel>
+</rss>

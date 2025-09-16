@@ -13,11 +13,21 @@
     
     <item>
       <title>UE Color Tools Plugin</title>
+      <link>http://localhost:1313/projects/ue5colortools/</link>
+      <pubDate>Wed, 06 Aug 2025 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/projects/ue5colortools/</guid>
+      <description>Work in Progress&amp;hellip; - UE5 plugin with color tool (vectorscope, histogram, waveform)</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/ue5colortools/cover.png" />
+    </item>
+    
+    <item>
+      <title>Umbra Mortis</title>
       <link>http://localhost:1313/projects/umbramortis/</link>
       <pubDate>Wed, 06 Aug 2025 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/umbramortis/</guid>
-      <description>Work in Progress&amp;hellip; - UE5 plugin with color tool (vectorscope, histogram, waveform)</description>
+      <description>Multiplayer zombie FPS made in UE5</description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/umbramortis/cover.jpg" />
     </item>
     
@@ -27,8 +37,18 @@
       <pubDate>Wed, 04 Sep 2024 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/owlet/</guid>
-      <description>RTS game made witha custom engine</description>
+      <description>RTS game made using custom engine</description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/owlet/cover.png" />
+    </item>
+    
+    <item>
+      <title>PEPI Renderer BUt cooler</title>
+      <link>http://localhost:1313/subpages/pepirenderer/</link>
+      <pubDate>Wed, 04 Sep 2024 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/subpages/pepirenderer/</guid>
+      <description>Custom Engine renderer</description>
+      
     </item>
     
     <item>
@@ -47,7 +67,7 @@
       <pubDate>Mon, 04 Sep 2023 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/2draytracer/</guid>
-      <description>2D Ray tracer with a game</description>
+      <description>2D Ray-Tracing renderer</description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/2draytracer/cover.png" />
     </item>
     

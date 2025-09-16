@@ -1,6 +1,6 @@
 ---
-title: "Owlet / PEPI engine"
-summary: " RTS game made using custom engine"
+title: "PEPI Renderer BUt cooler"
+summary: " Custom Engine renderer"
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
@@ -9,13 +9,7 @@ date: 2024-09-04
 draft: false
 ---
 
-## Overview
-
-
-{{< article link="/subpages/pepirenderer/" showSummary=true compactSummary=true >}}
-
-
-
+## PEPI Renderer
 
 
 ![alt text](../Owlet/Ago.png)

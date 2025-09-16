@@ -1,6 +1,6 @@
 ---
 title: "2D Ray Tracer"
-summary: " 2D Ray tracer with a game"
+summary: " 2D Ray-Tracing renderer "
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
