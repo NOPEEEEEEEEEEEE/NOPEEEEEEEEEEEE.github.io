@@ -9,7 +9,13 @@ date: 2022-09-04
 draft: false
 ---
 
-## 2D RTS
+## Overview
+
+
+
+| Duration  | Platform | Team size | Language |Tools|
+|:-------------|:-------------:|--------------:|--------------:|
+| 8 weeks  | Windows   |Solo    |C++ |Visual Studio|
 
 
 

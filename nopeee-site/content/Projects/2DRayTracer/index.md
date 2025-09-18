@@ -9,16 +9,19 @@ date: 2023-09-04
 draft: false
 ---
 
-## 2D Ray Tracer
+## Overview
 
 
-![alt text](../2DRayTracer/BackDropf.gif)
+
+| Duration  | Platform | Team size | Language |Tools|
+|:-------------|:-------------:|--------------:|--------------:|
+| 8 weeks  | Windows   |Solo    |C++ |Visual Studio|
+
 
 ![alt text](../2DRayTracer/Game_Coll.gif)
 
 ![alt text](../2DRayTracer/ImtersWithScale.gif)
 
-![alt text](../2DRayTracer/Light_First.gif)
 
 ![alt text](../2DRayTracer/Main_menu.gif)
 
@@ -26,9 +29,7 @@ draft: false
 
 ![alt text](../2DRayTracer/PointAndInters.gif)
 
-![alt text](../2DRayTracer/Spot_Light.gif)
 
-![alt text](../2DRayTracer/W1_ImGUi.gif)
 
 
 ![alt text](../2DRayTracer/W6_Perf_Mirrors_Many_Prim.gif)

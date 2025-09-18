@@ -1,6 +1,6 @@
 ---
-title: "PEPI Renderer BUt cooler"
-summary: " Custom Engine renderer"
+title: "PEPI Engine Renderer "
+summary: "DX12/DXR renderer built specifically for RTS games "
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
@@ -12,42 +12,64 @@ draft: false
 ## PEPI Renderer
 
 
-![alt text](../Owlet/Ago.png)
+### Bloom
 
-![alt text](../Owlet/Bloom.png)
+### Blended Skeletal Animations
+
+### Ray-Traced Shadows
+
+### UI System Porting
+
+### Mesh Instancing
+
+### PBR
+
+### Compatibility with Editor Tools
+
+![alt text](../PepiRenderer/IndexedMats.gif)
 
 
 
-![alt text](../Owlet/FinalLook.png)
+![alt text](../PepiRenderer/Lights.gif)
+
+![alt text](../PepiRenderer/Now.png)
 
 
 
-![alt text](../Owlet/IndexedMats.gif)
+![alt text](../PepiRenderer/Bloom.png)
 
 
 
-![alt text](../Owlet/Lights.gif)
+![alt text](../PepiRenderer/FinalLook.png)
 
-![alt text](../Owlet/Mips.png)
 
-![alt text](../Owlet/NoMips.png)
 
-![alt text](../Owlet/Now.png)
+![alt text](../PepiRenderer/IndexedMats.gif)
 
-![alt text](../Owlet/Particles.gif)
 
-![alt text](../Owlet/Shadows.png)
 
-![alt text](../Owlet/Shadows.png)
+![alt text](../PepiRenderer/Lights.gif)
 
-![alt text](../Owlet/Shadows.gif)
+![alt text](../PepiRenderer/Mips.png)
 
-![alt text](../Owlet/Terrain.png)
+![alt text](../PepiRenderer/NoMips.png)
 
-![alt text](../Owlet/anims.gif)
+![alt text](../PepiRenderer/Now.png)
 
-![alt text](../Owlet/SteamDeck.gif)
+![alt text](../PepiRenderer/Particles.gif)
 
-![alt text](../Owlet/terrain.gif)
+![alt text](../PepiRenderer/Shadows.png)
 
-![alt text](../Owlet/UI_ed.png)
+![alt text](../PepiRenderer/Shadows.png)
+
+![alt text](../PepiRenderer/Shadows.gif)
+
+![alt text](../PepiRenderer/Terrain.png)
+
+![alt text](../PepiRenderer/anims.gif)
+
+![alt text](../PepiRenderer/SteamDeck.gif)
+
+![alt text](../PepiRenderer/terrain.gif)
+
+![alt text](../PepiRenderer/UI_ed.png)
