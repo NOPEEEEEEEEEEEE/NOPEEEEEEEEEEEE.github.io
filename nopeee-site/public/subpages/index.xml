@@ -21,5 +21,15 @@
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/pepirenderer/cover.png" />
     </item>
     
+    <item>
+      <title>My contribution on Galactic Goo </title>
+      <link>http://localhost:1313/subpages/galacticgoowork/</link>
+      <pubDate>Mon, 04 Sep 2023 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/subpages/galacticgoowork/</guid>
+      <description></description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/galacticgoowork/cover.png" />
+    </item>
+    
   </channel>
 </rss>

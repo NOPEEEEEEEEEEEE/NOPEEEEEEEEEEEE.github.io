@@ -13,7 +13,7 @@ draft: false
 
 
 | Duration  | Platform | Team size | Language |Tools|
-|:-------------|:-------------:|--------------:|--------------:|
+|:-------------|:-------------:|--------------:|:--------------:|--------------:|
 | 8 weeks  | Linux(Raspberry Pi)   |Solo    |C++ |Visual Studio|
 
 ![alt text](../3DRTS/Bullet_Callback_Fighting.gif)

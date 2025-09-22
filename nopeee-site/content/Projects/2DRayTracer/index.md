@@ -13,9 +13,11 @@ draft: false
 
 
 
+
 | Duration  | Platform | Team size | Language |Tools|
-|:-------------|:-------------:|--------------:|--------------:|
+|:-------------|:-------------:|--------------:|:--------------:|:--------------:|
 | 8 weeks  | Windows   |Solo    |C++ |Visual Studio|
+
 
 
 ![alt text](../2DRayTracer/Game_Coll.gif)
