@@ -9,7 +9,17 @@
     <managingEditor>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</managingEditor>
     <webMaster>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</webMaster>
     <copyright>© 2025 Bogdan Depărățeanu</copyright>
-    <lastBuildDate>Wed, 04 Sep 2024 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/subpages/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 06 Jul 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/subpages/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>My contribution to Umbra Mortis</title>
+      <link>http://localhost:1313/subpages/umbramortiswork/</link>
+      <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/subpages/umbramortiswork/</guid>
+      <description>Multiplayer zombie FPS made in UE5</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/umbramortiswork/cover.jpg" />
+    </item>
     
     <item>
       <title>PEPI Engine Renderer </title>

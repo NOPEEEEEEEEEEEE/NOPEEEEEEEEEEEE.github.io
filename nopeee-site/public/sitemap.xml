@@ -27,6 +27,18 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>http://localhost:1313/subpages/umbramortiswork/</loc>
+    <lastmod>2025-07-06T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>http://localhost:1313/subpages/</loc>
+    <lastmod>2025-07-06T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>http://localhost:1313/projects/umbramortis/</loc>
     <lastmod>2025-07-06T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
@@ -34,12 +46,6 @@
   </url>
   <url>
     <loc>http://localhost:1313/subpages/pepirenderer/</loc>
-    <lastmod>2024-09-04T00:00:00+00:00</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>http://localhost:1313/subpages/</loc>
     <lastmod>2024-09-04T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
