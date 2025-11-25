@@ -22,6 +22,16 @@
     </item>
     
     <item>
+      <title>My contribution to Umbra Mortis</title>
+      <link>http://localhost:1313/subpages/umbramortiswork/</link>
+      <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
+      <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
+      <guid>http://localhost:1313/subpages/umbramortiswork/</guid>
+      <description>Multiplayer zombie FPS made in UE5</description>
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/umbramortiswork/cover.jpg" />
+    </item>
+    
+    <item>
       <title>Umbra Mortis</title>
       <link>http://localhost:1313/projects/umbramortis/</link>
       <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>

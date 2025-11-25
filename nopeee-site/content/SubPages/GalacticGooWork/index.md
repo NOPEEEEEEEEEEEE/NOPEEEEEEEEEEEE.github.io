@@ -36,8 +36,9 @@ draft: false
 
 ![alt text](../GalacticGooWork/Slime_2_2.gif)
 
-![alt text](../GalacticGooWork/Slime_2.gif)
+ ![alt text](../GalacticGooWork/Slime_2.gif)
 
+{{< carousel images="{../GalacticGooWork/Slime_1.gif, ../GalacticGooWork/Slime_2_2.gif,../GalacticGooWork/Slime_2.gif}" >}}
 
 
 ![alt text](../GalacticGooWork/Rocket.gif)

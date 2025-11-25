@@ -9,9 +9,23 @@ date: 2025-07-06
 draft: false
 ---
 
-## Umbra Mortis
+## Overview
 
 
-| Role | Duration  | Platform | Team size | 
+| Role | Duration  | Platform | Team size |Engine| 
 |:-------------|:-------------:|--------------:|:--------------:|--------------:|
-| Generalist  |1 Year  | Windows   |8 Programmers, 3 Designers, 3 Artists    |
+| Generalist  |1 Year  | Windows   | Programmers,  Designers,  Artists    | Unreal Engine 5|
+
+
+
+
+
+
+
+{{< article link="/subpages/umbramortiswork/" showSummary=true compactSummary=true >}}
+
+
+
+
+
+[Umbra Mortis Steam Page](https://store.steampowered.com/app/3365870/Umbra_Mortis)
