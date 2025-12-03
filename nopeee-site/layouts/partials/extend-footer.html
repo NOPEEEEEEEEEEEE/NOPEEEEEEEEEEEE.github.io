@@ -1,0 +1,106 @@
+<script type="module">
+  async function initWebGPU() {
+    
+    // --- 1. CHECKS ---
+    const isHome = document.body.classList.contains('home') || window.location.pathname === "/";
+    if (!isHome) return;
+    if (!navigator.gpu) { console.log("WebGPU not supported"); return; }
+
+    // --- 2. SETUP CANVAS ---
+    document.body.style.backgroundColor = "transparent";
+    const canvas = document.createElement("canvas");
+    canvas.id = "webgpu-bg";
+    document.body.prepend(canvas);
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      zIndex: "-1", pointerEvents: "none" 
+    });
+
+    // --- 3. INITIALIZE GPU ---
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+    const context = canvas.getContext("webgpu");
+
+    // --- 4. SHADER CODE (Safe Injection) ---
+    // Note: The path is relative to the "assets" folder
+    {{ $shader := resources.Get "shaders/main.wgsl" }}
+    
+    {{ with $shader }}
+        const shaderCode = `{{ .Content }}`;
+    {{ else }}
+        console.error("CRITICAL ERROR: 'assets/shaders/main.wgsl' not found!");
+        return; 
+    {{ end }}
+
+    // --- 5. PIPELINE SETUP ---
+    const shaderModule = device.createShaderModule({ code: shaderCode });
+    const pipeline = device.createRenderPipeline({
+      layout: "auto",
+      vertex: { module: shaderModule, entryPoint: "vs_main" },
+      fragment: {
+        module: shaderModule,
+        entryPoint: "fs_main",
+        targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }],
+      },
+      primitive: { topology: "triangle-list" },
+    });
+
+    // --- 6. UNIFORM BUFFER SETUP ---
+    const uniformBufferSize = 8; 
+    const uniformBuffer = device.createBuffer({
+      size: uniformBufferSize,
+      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+    });
+
+    const uniformValues = new Float32Array(2);
+
+    const bindGroup = device.createBindGroup({
+      layout: pipeline.getBindGroupLayout(0),
+      entries: [
+        { binding: 0, resource: { buffer: uniformBuffer } },
+      ],
+    });
+
+    // --- 7. RESIZE HANDLER ---
+    const resize = () => {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      canvas.width = w;
+      canvas.height = h;
+      context.configure({
+        device: device,
+        format: navigator.gpu.getPreferredCanvasFormat(),
+        alphaMode: "premultiplied",
+      });
+      uniformValues[0] = w;
+      uniformValues[1] = h;
+      device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+    };
+    window.addEventListener("resize", resize);
+    resize(); 
+
+    // --- 8. RENDER LOOP ---
+    function frame() {
+      const commandEncoder = device.createCommandEncoder();
+      const textureView = context.getCurrentTexture().createView();
+      const renderPassDescriptor = {
+        colorAttachments: [{
+          view: textureView,
+          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, 
+          loadOp: "clear",
+          storeOp: "store",
+        }],
+      };
+      const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+      passEncoder.setPipeline(pipeline);
+      passEncoder.setBindGroup(0, bindGroup); 
+      passEncoder.draw(3);
+      passEncoder.end();
+      device.queue.submit([commandEncoder.finish()]);
+      requestAnimationFrame(frame);
+    }
+    frame();
+  }
+  initWebGPU();
+</script>
