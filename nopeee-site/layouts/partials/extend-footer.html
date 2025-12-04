@@ -47,58 +47,77 @@
     });
 
     // --- 6. UNIFORM BUFFER SETUP ---
-    const uniformBufferSize = 8; 
+    const uniformBufferSize = 16; 
     const uniformBuffer = device.createBuffer({
-      size: uniformBufferSize,
-      usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+        size: uniformBufferSize,
+        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
-    const uniformValues = new Float32Array(2);
+    const uniformValues = new Float32Array(4); // Array of 4 items
 
     const bindGroup = device.createBindGroup({
-      layout: pipeline.getBindGroupLayout(0),
-      entries: [
-        { binding: 0, resource: { buffer: uniformBuffer } },
-      ],
+        layout: pipeline.getBindGroupLayout(0),
+        entries: [
+            { binding: 0, resource: { buffer: uniformBuffer } },
+        ],
     });
 
     // --- 7. RESIZE HANDLER ---
     const resize = () => {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
-      canvas.width = w;
-      canvas.height = h;
-      context.configure({
-        device: device,
-        format: navigator.gpu.getPreferredCanvasFormat(),
-        alphaMode: "premultiplied",
-      });
-      uniformValues[0] = w;
-      uniformValues[1] = h;
-      device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        canvas.width = w;
+        canvas.height = h;
+
+        context.configure({
+            device: device,
+            format: navigator.gpu.getPreferredCanvasFormat(),
+            alphaMode: "premultiplied",
+        });
+
+        // Only update index 0 and 1 here
+        uniformValues[0] = w;
+        uniformValues[1] = h;
+        // We will upload in the frame loop now
     };
+
     window.addEventListener("resize", resize);
     resize(); 
 
-    // --- 8. RENDER LOOP ---
     function frame() {
-      const commandEncoder = device.createCommandEncoder();
-      const textureView = context.getCurrentTexture().createView();
-      const renderPassDescriptor = {
-        colorAttachments: [{
-          view: textureView,
-          clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 }, 
-          loadOp: "clear",
-          storeOp: "store",
-        }],
-      };
-      const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-      passEncoder.setPipeline(pipeline);
-      passEncoder.setBindGroup(0, bindGroup); 
-      passEncoder.draw(3);
-      passEncoder.end();
-      device.queue.submit([commandEncoder.finish()]);
-      requestAnimationFrame(frame);
+        // UPDATE TIME
+        // performance.now() gives milliseconds. 
+        // Divide by 1000 to get Seconds.
+        const time = performance.now() / 1000;
+        
+        // Write to index 2
+        uniformValues[2] = time; 
+
+        // Upload the whole array (width, height, time, padding)
+        device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+
+        // Standard Render Code...
+        const commandEncoder = device.createCommandEncoder();
+        const textureView = context.getCurrentTexture().createView();
+        
+        const renderPassDescriptor = {
+            colorAttachments: [{
+                view: textureView,
+                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+                loadOp: "clear",
+                storeOp: "store",
+            }],
+        };
+        
+        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+        passEncoder.setPipeline(pipeline);
+        passEncoder.setBindGroup(0, bindGroup); 
+        passEncoder.draw(3);
+        passEncoder.end();
+        
+        device.queue.submit([commandEncoder.finish()]);
+        requestAnimationFrame(frame);
     }
     frame();
   }

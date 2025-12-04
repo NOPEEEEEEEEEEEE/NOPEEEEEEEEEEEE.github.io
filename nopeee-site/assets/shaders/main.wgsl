@@ -1,7 +1,7 @@
 struct Uniforms {
 
   resolution: vec2f,
-
+  time: f32,
 }
 
 
@@ -61,6 +61,8 @@ fn smin(a: f32, b: f32, k: f32) -> f32 {
 fn map(p_in: vec3f) -> vec2f {
     var p = p_in;
     
+    let time = uniforms.time ;
+
     // 1. Ground
     var res = vec2f(p.y + 0.5, MAT_GROUND);
 
@@ -69,70 +71,70 @@ fn map(p_in: vec3f) -> vec2f {
     p_stem.x = p_stem.x + sin(p_stem.y * 2.0) * 0.1;
     p_stem.z = p_stem.z + cos(p_stem.y * 3.0) * 0.05;
     
-    let stemRadius = 0.06 * smoothstep(2.5, 0.0, p_stem.y) + 0.01;
+    let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) + 0.01;
     let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);
     
     if (d_stem < res.x) { 
         res = vec2f(d_stem, MAT_STEM); 
     }
 
-    // 3. Leaves
-    // Leaf 1
-    var p_leaf1 = p - vec3f(0.1, 0.3, 0.1); 
+    // // 3. Leaves
+    // // Leaf 1
+    // var p_leaf1 = p - vec3f(0.1, 0.3, 0.1); 
     
-    // Manual rotation YZ
-    let rot_leaf1_yz = rot2D(vec2f(p_leaf1.y, p_leaf1.z), 0.8);
-    p_leaf1.y = rot_leaf1_yz.x;
-    p_leaf1.z = rot_leaf1_yz.y;
+    // // Manual rotation YZ
+    // let rot_leaf1_yz = rot2D(vec2f(p_leaf1.y, p_leaf1.z), 0.8);
+    // p_leaf1.y = rot_leaf1_yz.x;
+    // p_leaf1.z = rot_leaf1_yz.y;
     
-    // Manual rotation XZ
-    let rot_leaf1_xz = rot2D(vec2f(p_leaf1.x, p_leaf1.z), 0.5);
-    p_leaf1.x = rot_leaf1_xz.x;
-    p_leaf1.z = rot_leaf1_xz.y;
+    // // Manual rotation XZ
+    // let rot_leaf1_xz = rot2D(vec2f(p_leaf1.x, p_leaf1.z), 0.5);
+    // p_leaf1.x = rot_leaf1_xz.x;
+    // p_leaf1.z = rot_leaf1_xz.y;
 
-    let d_leaf1 = sdEllipsoid(p_leaf1, vec3f(0.2, 0.02, 0.1));
+    // let d_leaf1 = sdEllipsoid(p_leaf1, vec3f(0.2, 0.02, 0.1));
 
-    // Leaf 2
-    var p_leaf2 = p - vec3f(-0.1, 0.8, -0.1);
+    // // Leaf 2
+    // var p_leaf2 = p - vec3f(-0.1, 0.8, -0.1);
     
-    // Manual rotation YZ
-    let rot_leaf2_yz = rot2D(vec2f(p_leaf2.y, p_leaf2.z), 1.0);
-    p_leaf2.y = rot_leaf2_yz.x;
-    p_leaf2.z = rot_leaf2_yz.y;
+    // // Manual rotation YZ
+    // let rot_leaf2_yz = rot2D(vec2f(p_leaf2.y, p_leaf2.z), 1.0);
+    // p_leaf2.y = rot_leaf2_yz.x;
+    // p_leaf2.z = rot_leaf2_yz.y;
 
-    // Manual rotation XZ
-    let rot_leaf2_xz = rot2D(vec2f(p_leaf2.x, p_leaf2.z), -2.0);
-    p_leaf2.x = rot_leaf2_xz.x;
-    p_leaf2.z = rot_leaf2_xz.y;
+    // // Manual rotation XZ
+    // let rot_leaf2_xz = rot2D(vec2f(p_leaf2.x, p_leaf2.z), -2.0);
+    // p_leaf2.x = rot_leaf2_xz.x;
+    // p_leaf2.z = rot_leaf2_xz.y;
     
-    let d_leaf2 = sdEllipsoid(p_leaf2, vec3f(0.18, 0.02, 0.09));
+    // let d_leaf2 = sdEllipsoid(p_leaf2, vec3f(0.18, 0.02, 0.09));
     
-    let d_leaves = min(d_leaf1, d_leaf2);
-    res.x = smin(res.x, d_leaves, 0.05);
+    // let d_leaves = min(d_leaf1, d_leaf2);
+    // res.x = smin(res.x, d_leaves, 0.05);
 
-    // 4. Rose Head
-    var p_rose = p - vec3f(0.0, 2.2, 0.0);
-    let r_rose = length(p_rose);
-    let safe_r = max(r_rose, 0.001);
+    // // 4. Rose Head
+    // var p_rose = p - vec3f(0.0, 2.2, 0.0);
+    // let r_rose = length(p_rose);
+    // let safe_r = max(r_rose, 0.001);
     
-    let theta = atan2(p_rose.z, p_rose.x); 
-    let phi = acos(clamp(p_rose.y / safe_r, -1.0, 1.0)); 
+    // let theta = atan2(p_rose.z, p_rose.x); 
+    // let phi = acos(clamp(p_rose.y / safe_r, -1.0, 1.0)); 
 
-    var petal_dist = r_rose - 0.35;
-    petal_dist = petal_dist + sin(theta * 5.0 + phi * 3.0) * 0.03 * smoothstep(0.0, 1.0, phi);
-    petal_dist = petal_dist + sin(theta * 13.0) * 0.01 * smoothstep(0.5, 0.0, phi);
+    // var petal_dist = r_rose - 0.35;
+    // petal_dist = petal_dist + sin(theta * 5.0 + phi * 3.0) * 0.03 * smoothstep(0.0, 1.0, phi);
+    // petal_dist = petal_dist + sin(theta * 13.0) * 0.01 * smoothstep(0.5, 0.0, phi);
     
-    let bud = sdSphere(p_rose - vec3f(0.0, 0.1, 0.0), 0.15);
+    // let bud = sdSphere(p_rose - vec3f(0.0, 0.1, 0.0), 0.15);
     
-    let d_rose_final = smin(petal_dist, bud, 0.1);
-    res.x = smin(res.x, d_rose_final, 0.1);
+    // let d_rose_final = smin(petal_dist, bud, 0.1);
+    // res.x = smin(res.x, d_rose_final, 0.1);
     
-    if (length(p - vec3f(0.0, 2.2, 0.0)) < 0.5) {
-         res.y = MAT_ROSE;
-    }
-    //  else if (d_leaves < d_stem + 0.1) {
-    //      res.y = MAT_STEM;
+    // if (length(p - vec3f(0.0, 2.2, 0.0)) < 0.5) {
+    //      res.y = MAT_ROSE;
     // }
+    // //  else if (d_leaves < d_stem + 0.1) {
+    // //      res.y = MAT_STEM;
+    // // }
 
     return res; 
 }

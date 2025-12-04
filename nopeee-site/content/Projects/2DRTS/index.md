@@ -9,25 +9,42 @@ date: 2022-09-04
 draft: false
 ---
 
-## Overview
 
 
 
-| Duration  | Platform | Team size | Language |Tools|
+
+| Duration  | Platform | Team size | Language |
 |:-------------|:-------------:|--------------:|--------------:|
-| 8 weeks  | Windows   |Solo    |C++ |Visual Studio|
+| 8 weeks  | Windows   |Solo    |C++ |
 
+ 
+# Overview
 
+ ---
+
+My very first project at BUAS in Year 1. A 2D RTS tank game, rendered on the CPU and making use of an Open GL template to display the image. 
 
 ![alt text](../2DRTS/Combat_AI.gif)
+ 
+# Goals
 
-![alt text](../2DRTS/grouping.gif)
+ --- 
+
+ - Getting exposed to some basic concepts involved in game development, like AI implementation, sprite rendering and collision detection
 
 
 ![alt text](../2DRTS/Local_col2.gif)
 
+
+
+# Features 
+
+ ---
+
+- The player can select and control the actions of the units
+- Unit grouping 
+- Enemy AI and individual tank AI
+- Unit local collision
+- Procedural map generation, with rivers, valeys and forests
+
 ![alt text](../2DRTS/procedural_map.gif)
-
-![alt text](../2DRTS/Simple_combat.gif)
-
-
