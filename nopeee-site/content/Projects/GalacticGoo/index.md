@@ -9,26 +9,38 @@ date: 2023-09-04
 draft: false
 ---
 
-## Galactic Goo
 
+# Overview
+
+ ---
 | Role | Duration  | Platform | Team size | 
 |:-------------|:-------------:|--------------:|:--------------:|--------------:|
 | Generalist  |8 weeks  | Windows   |3 Programmers, 5 Designers, 5 Artists    |
 
 
-Galactic Goo is a plaform puzzle game made in UE5 in my first year. This was my first experience working in a multidisciplinary team
+Galactic Goo is a plaform puzzle game made in UE5 in my first year. This was my first experience working in a multidisciplinary team.
 
 ![alt text](../GalacticGoo/Final_Gameplay.gif)
 
+# Goals
 
-### My contribution:
+ ---
+
+- Experiencing working within a team and colaborating with multiple disciplines/ specializations. 
+- Getting more experience with Unreal Engine
+- Learning how to apply AGILE / SCRUM practices
+
+# My contribution:
+
+ ---
 
 {{< article link="/subpages/galacticgoowork/" showSummary=true compactSummary=true >}}
 
 
 
-### Links:
+# Links:
 
+ ---
 
 [Galactic Goo Trailer](https://youtu.be/D1AinfLNI7Y?si=By6BXvcet8-nTdQ3)
 

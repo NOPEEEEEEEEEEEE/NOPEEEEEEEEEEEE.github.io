@@ -56,6 +56,162 @@ fn smin(a: f32, b: f32, k: f32) -> f32 {
     return mix(b, a, h) - k * h * (1.0 - h);
 }
 
+fn opCheapBend(p: vec3f) -> vec3f {
+    let k = 10.0; // The amount to bend
+    
+    let c = cos(k * p.x);
+    let s = sin(k * p.x);
+    
+    // Construct 2x2 Rotation Matrix
+    // Note: WGSL matrices are column-major, just like GLSL
+    let m = mat2x2f(c, -s, s, c);
+    
+    // Apply rotation to X and Y, leave Z alone
+    // The matrix multiplication (m * p.xy) works natively
+    return vec3f(m * p.xy, p.z);
+}
+
+fn sdVerticalVesicaSegment(p: vec3f, h_in: f32, w_in: f32) -> f32 {
+    // 1. Create mutable local copies of the inputs
+    var h = h_in * 0.5;
+    var w = w_in * 0.5;
+
+    // 2. Shape constants
+    let d = 0.5 * (h * h - w * w) / w;
+    
+    // 3. Project to 2D
+    let q = vec2f(length(p.xz), abs(p.y - h));
+    
+    // 4. Feature selection
+    // GLSL: (condition) ? true : false
+    // WGSL: select(false, true, condition) <-- IMPORTANT!
+    let condition = (h * q.x < d * (q.y - h));
+    
+    let t = select(
+        vec3f(-d, 0.0, d + w), // The "False" case
+        vec3f(0.0, h, 0.0),    // The "True" case
+        condition
+    );
+    
+    // 5. Distance
+    return length(q - t.xy) - t.z;
+}
+
+fn sdTriPrism(p: vec3f, h: vec2f) -> f32 {
+    let q = abs(p);
+    
+    // h.x = Size (Radius of the triangle)
+    // h.y = Thickness (Depth in Z axis)
+    
+    return max(
+        q.z - h.y, 
+        max(
+            q.x * 0.866025 + p.y * 0.5, 
+            -p.y
+        ) - h.x * 0.5
+    );
+}
+
+
+fn dot2(v: vec3f) -> f32 {
+    return dot(v, v);
+}
+
+fn udTriangle(p: vec3f, a: vec3f, b: vec3f, c: vec3f) -> f32 {
+    let ba = b - a; 
+    let pa = p - a;
+    let cb = c - b; 
+    let pb = p - b;
+    let ac = a - c; 
+    let pc = p - c;
+    
+    let nor = cross(ba, ac);
+
+    // Calculate the 3 Barycentric/projection conditions
+    let cond_val = sign(dot(cross(ba, nor), pa)) +
+                   sign(dot(cross(cb, nor), pb)) +
+                   sign(dot(cross(ac, nor), pc));
+
+    // EDGE DISTANCE MATH
+    // Calculates distance to the 3 distinct line segments
+    let d_edge_a = dot2(ba * clamp(dot(ba, pa) / dot2(ba), 0.0, 1.0) - pa);
+    let d_edge_b = dot2(cb * clamp(dot(cb, pb) / dot2(cb), 0.0, 1.0) - pb);
+    let d_edge_c = dot2(ac * clamp(dot(ac, pc) / dot2(ac), 0.0, 1.0) - pc);
+    
+    let dist_edge = min(min(d_edge_a, d_edge_b), d_edge_c);
+
+    // FACE DISTANCE MATH
+    // Calculates distance to the plane
+    let dist_face = dot(nor, pa) * dot(nor, pa) / dot2(nor);
+
+    // SELECT
+    // If cond_val < 2.0, we are "outside" the projection, use edge distance.
+    // Otherwise, use face distance.
+    let result_sq = select(
+        dist_face,   // False case (cond >= 2.0) -> Face
+        dist_edge,   // True case  (cond < 2.0)  -> Edge
+        cond_val < 2.0
+    );
+
+    return sqrt(result_sq);
+}
+
+fn opPolarRep(p: vec3f, repetitions: f32, offset_radius: f32) -> vec3f {
+    let PI = 3.14159265;
+    
+    // 1. Calculate the size of each slice (e.g., 360 / 5)
+    let angle_step = 2.0 * PI / repetitions;
+
+    // 2. Get the current angle and distance of the point
+    let current_angle = atan2(p.z, p.x);
+    let dist = length(p.xz);
+
+    // 3. Find which "sector" we are in by rounding the angle
+    // This snaps the coordinate to the center of the nearest slice
+    let sector = round(current_angle / angle_step);
+
+    // 4. Calculate the new local angle within that sector
+    let new_angle = current_angle - sector * angle_step;
+
+    // 5. Convert back to Cartesian (x, z) using the new angle
+    // This effectively rotates the world so the object is always on the X axis
+    let q_xz = vec2f(
+        cos(new_angle) * dist,
+        sin(new_angle) * dist
+    );
+    
+    // 6. Apply Radius Offset
+    // We subtract 'offset_radius' from X. 
+    // Since X now points "outwards" relative to the center, 
+    // this pushes the object out to the ring's edge.
+    return vec3f(q_xz.x - offset_radius, p.y, q_xz.y);
+}
+
+fn flower(p: vec3f,location:vec3f) -> f32 {
+
+
+let center = vec3f(0.0, 1.0, 0.0);
+    let pos = p - center;
+
+    // --- 2. APPLY POLAR REPETITION ---
+    // We pass 'pos' into the function.
+    // 5.0 = Number of triangles
+    // 2.0 = Radius of the circle (how far they are from center)
+    let q = opPolarRep(pos, 5.0, 0.2);
+
+    let size = 0.2;
+
+    let v1 = vec3f(0.0, location.y, -1.0*size);
+    let v2 = vec3f( 0.0, location.y, 1.0*size);
+    let v3 = vec3f( 3.0*size, location.y , 0.0); 
+    let d_flat = udTriangle(q, v1, v2, v3);
+    let thickness = 0.01; 
+    let d_t =  d_flat - thickness;
+
+
+return d_t;
+}
+
 // --- The Main Scene Description ---
 
 fn map(p_in: vec3f) -> vec2f {
@@ -64,9 +220,17 @@ fn map(p_in: vec3f) -> vec2f {
     let time = uniforms.time ;
 
     // 1. Ground
-    var res = vec2f(p.y + 0.5, MAT_GROUND);
+     var res = vec2f(p.y + 0.5, MAT_GROUND);
 
-    // 2. Stem
+    let flower_pos = vec3f(0.0, 1.0, 0.0);
+
+    let d_t =  flower(p, flower_pos);
+
+    if (d_t < res.x) { 
+        res = vec2f(d_t, MAT_STEM); 
+    }
+
+    // // 2. Stem
     var p_stem = p;
     p_stem.x = p_stem.x + sin(p_stem.y * 2.0) * 0.1;
     p_stem.z = p_stem.z + cos(p_stem.y * 3.0) * 0.05;
@@ -173,7 +337,9 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
     let uv = (pos.xy * 2.0 - resolution) / resolution.y;
     let uv_flipped = vec2f(uv.x, -uv.y);
 
-    let ro = vec3f(1.0, 2.5, -2.5); 
+    let time = uniforms.time * 2.0 ;
+
+    let ro = vec3f(sin(time), 2.5, -2.5); 
     let lookAt = vec3f(1.0, 2, 0.0);
     
     let fwd = normalize(lookAt - ro);

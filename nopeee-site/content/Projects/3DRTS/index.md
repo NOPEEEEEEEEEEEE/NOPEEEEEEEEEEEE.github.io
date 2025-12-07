@@ -16,23 +16,45 @@ draft: false
 |:-------------|:-------------:|--------------:|:--------------:|--------------:|
 | 8 weeks  | Linux(Raspberry Pi)   |Solo    |C++ |Visual Studio|
 
-![alt text](../3DRTS/Bullet_Callback_Fighting.gif)
 
 
 
 # Overview
 
+ ---
+
+ This was my second project at BUAS. We have taken the first project up a notch, turning it into a 3D game, runing on a Raspberry Pi and making use of a physics engine. 
+
+![alt text](../3DRTS/Bullet_Callback_Fighting.gif)
 
 ![alt text](../3DRTS/Menu_Diff_and_delete.gif)
 
 # Goals
+
+ ---
+
+- Getting some hands on experience with Open GLES on an embeded environment
+
+- First interaction with a physics engine
+
+- Getting to learn how to use ImGui, preparing me for future projects 
 
 ![alt text](../3DRTS/Selection_Det_Callcack.gif)
 
 
 # Features
 
-![alt text](../3DRTS/TanksFalling.gif)
+ ---
+
+- Running on a Raspberry Pi, being rendered with Open GLES
+
+- Using the Bullet Physics library
+
+- Procedurally generated map
+
+- Combat AI controling physcial objects
+
+- Multiple game modes
 
 
 ![alt text](../3DRTS/Flag_Names.gif)

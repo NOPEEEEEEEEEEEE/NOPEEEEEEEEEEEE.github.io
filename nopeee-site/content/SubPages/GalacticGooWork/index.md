@@ -14,7 +14,7 @@ draft: false
 
 ![alt text](../GalacticGooWork/Purple.gif)
 
-### Camera
+## Camera
 
 ![alt text](../GalacticGooWork/Rotation_Problem.gif)
 ![alt text](../GalacticGooWork/Camera.gif)
@@ -23,14 +23,9 @@ draft: false
 
 ![alt text](../GalacticGooWork/Movement_2.gif)
 
-### Aesthetics
+## Aesthetics
 
-![alt text](../GalacticGooWork/Color_Selection.gif)
-
-![alt text](../GalacticGooWork/ColourChange.gif)
-
-![alt text](../GalacticGooWork/Menu.gif)
-
+### Slime Simulation
 
 ![alt text](../GalacticGooWork/Slime_1.gif)
 
@@ -40,17 +35,36 @@ draft: false
 
 {{< carousel images="{../GalacticGooWork/Slime_1.gif, ../GalacticGooWork/Slime_2_2.gif,../GalacticGooWork/Slime_2.gif}" >}}
 
+### Simulation customization
+
+![alt text](../GalacticGooWork/Color_Selection.gif)
+
+![alt text](../GalacticGooWork/ColourChange.gif)
+
+### Menu Animations
+
+![alt text](../GalacticGooWork/Menu.gif)
+
+
+
+### Smoke
 
 ![alt text](../GalacticGooWork/Rocket.gif)
 
-### Game Mechanics
+## Game Mechanics
+
+Giving visual feedback for game mechanics
+
+### Fans
 
 ![alt text](../GalacticGooWork/Fans1.gif)
+
+### Losing Mass
 
 ![alt text](../GalacticGooWork/MassLoss.gif)
 
 
-
+### Splitting Mechanic
 
 ![alt text](../GalacticGooWork/Splitting1.gif)
 
