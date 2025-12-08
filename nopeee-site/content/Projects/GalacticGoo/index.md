@@ -26,7 +26,7 @@ Galactic Goo is a plaform puzzle game made in UE5 in my first year. This was my 
 
  ---
 
-- Experiencing working within a team and colaborating with multiple disciplines/ specializations. 
+- Experiencing work within a team and colaborating with multiple disciplines. 
 - Getting more experience with Unreal Engine
 - Learning how to apply AGILE / SCRUM practices
 

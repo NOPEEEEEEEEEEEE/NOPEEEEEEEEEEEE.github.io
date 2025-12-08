@@ -26,6 +26,19 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) ve
 
 
 // --- SDF Primitive Helpers ---
+fn opRotateY(p: vec3f, angle: f32) -> vec3f {
+    let c = cos(angle);
+    let s = sin(angle);
+    return vec3f(c * p.x - s * p.z, p.y, s * p.x + c * p.z);
+}
+
+// Rotates around the X axis (Pitch - tilting forward/back)
+fn opRotateX(p: vec3f, angle: f32) -> vec3f {
+    let c = cos(angle);
+    let s = sin(angle);
+    return vec3f(p.x, c * p.y - s * p.z, s * p.y + c * p.z);
+}
+
 
 fn rot2D(p: vec2f, angle: f32) -> vec2f {
     let s = sin(angle);
@@ -159,57 +172,235 @@ fn udTriangle(p: vec3f, a: vec3f, b: vec3f, c: vec3f) -> f32 {
 fn opPolarRep(p: vec3f, repetitions: f32, offset_radius: f32) -> vec3f {
     let PI = 3.14159265;
     
-    // 1. Calculate the size of each slice (e.g., 360 / 5)
     let angle_step = 2.0 * PI / repetitions;
 
-    // 2. Get the current angle and distance of the point
     let current_angle = atan2(p.z, p.x);
     let dist = length(p.xz);
 
-    // 3. Find which "sector" we are in by rounding the angle
-    // This snaps the coordinate to the center of the nearest slice
+  
     let sector = round(current_angle / angle_step);
 
-    // 4. Calculate the new local angle within that sector
+ 
     let new_angle = current_angle - sector * angle_step;
 
-    // 5. Convert back to Cartesian (x, z) using the new angle
-    // This effectively rotates the world so the object is always on the X axis
+   
     let q_xz = vec2f(
         cos(new_angle) * dist,
         sin(new_angle) * dist
     );
     
-    // 6. Apply Radius Offset
-    // We subtract 'offset_radius' from X. 
-    // Since X now points "outwards" relative to the center, 
-    // this pushes the object out to the ring's edge.
+   
     return vec3f(q_xz.x - offset_radius, p.y, q_xz.y);
 }
+fn sdVesica(p: vec2f, r: f32, d: f32) -> f32 {
+    let p_abs = abs(p);
+    let b = sqrt(r * r - d * d);
+    
+    let condition = (p_abs.y - b) * d > p_abs.x * b;
+    
+    let d1 = length(p_abs - vec2f(0.0, b));
+    let d2 = length(p_abs - vec2f(-d, 0.0)) - r;
+    
+    return select(d2, d1, condition);
+}
+fn smax(a: f32, b: f32, k: f32) -> f32 {
+    let h = clamp(0.5 + 0.5 * (a - b) / k, 0.0, 1.0);
+    return mix(a, b, h) + k * h * (1.0 - h);
+}
+fn sdPetal(p: vec3f, s: f32) -> f32 {
+    var pos = p;
 
-fn flower(p: vec3f,location:vec3f) -> f32 {
+    // Normalize 's' for blending
+    // s is now between 0.2 and 0.35
+    let t = smoothstep(0.2, 0.35, s);
+
+    // --- BENDING ---
+    
+    // 1. SIDE CUPPING (Spoon shape)
+    // Stronger on inside (2.0), weaker on outside (1.0)
+    let cup_strength = mix(2.0, 0.3, t);
+    pos.z += pos.x * pos.x * cup_strength;
+
+    // 2. MAIN CURL (Backward lean)
+    let main_curl = mix(0.05, 0.1, t);
+    pos.z -= pow(max(pos.y + 0.4, 0.0), 2.0) * main_curl;
+
+    // 3. TIP RECURVE (The "Rose Effect")
+    // Only applies to top 30% of petal
+    let tip_height = max(pos.y - 0.3, 0.0);
+    
+    // We reduced the multiplier from 15.0 to 5.0 to stop the "Huge" explosion
+    let recurve_amount = pow(tip_height, 2.5) * 5.0 * t;
+    pos.z -= recurve_amount;
 
 
-let center = vec3f(0.0, 1.0, 0.0);
-    let pos = p - center;
+    // --- SHAPE ---
+    let taper_strength = mix(0.5, 0.8, t);
+    let taper = 1.0 + taper_strength * pos.y;
+    
+    // Clamp taper to be safe
+    let p_x = pos.x / clamp(taper, 0.1, 3.0);
+    
+    // Base Circle
+    let d_2d = length(vec2f(p_x, pos.y)) - 0.7; 
 
-    // --- 2. APPLY POLAR REPETITION ---
-    // We pass 'pos' into the function.
-    // 5.0 = Number of triangles
-    // 2.0 = Radius of the circle (how far they are from center)
-    let q = opPolarRep(pos, 5.0, 0.2);
+    // Cut Top
+    let d_flat_top = smax(d_2d, pos.y - 0.35, 0.05);
 
-    let size = 0.2;
+    // Thickness
+    // Scale distance by 0.6 to avoid artifacts
+    let d_final_2d = d_flat_top * 0.6; 
 
-    let v1 = vec3f(0.0, location.y, -1.0*size);
-    let v2 = vec3f( 0.0, location.y, 1.0*size);
-    let v3 = vec3f( 3.0*size, location.y , 0.0); 
-    let d_flat = udTriangle(q, v1, v2, v3);
     let thickness = 0.01; 
-    let d_t =  d_flat - thickness;
+    let d_z = abs(pos.z) - thickness;
+
+    let w = vec2f(d_2d, d_z);
+    return min(max(w.x, w.y), 0.0) + length(max(w, vec2f(0.0)));
+}
 
 
-return d_t;
+
+fn sdRose(p: vec3f) -> f32 {
+    var d_min = 100.0;
+    
+    let petal_count = 10.0; 
+    let golden_angle = 2.39996; 
+    
+    for (var i = 1.0; i < petal_count; i += 1.0) {
+        
+        let r = 0.03 * sqrt(i); // Kept radius compact
+        let theta = i * golden_angle;
+        
+        // Lower outer petals
+        let petal_center = vec3f(r * cos(theta), -r * 0.2, r * sin(theta));
+
+        // --- FIX 1: REDUCED SCALE RANGE ---
+        // Was: 0.2 + ... * 0.3 (Result 0.5)
+        // Now: 0.2 + ... * 0.15 (Result 0.35)
+        // This prevents the outer petals from becoming giant monsters.
+        let scale = 0.2 + (i / petal_count) * 0.15;
+
+        var q = p - petal_center;
+        
+        q = opRotateY(q, -theta + 1.57);
+        
+        // --- FIX 2: TILT ADJUSTMENT ---
+        // Inner: -0.2 (Tucked in)
+        // Outer: 0.6 (Opened up, but not falling over)
+        let tilt = -0.2 + (i / petal_count) * 0.8; 
+        q = opRotateX(q, -tilt);
+        
+        // Scale the coordinate space
+        q = q / scale;
+
+        // Calculate distance and multiply back
+        let d = sdPetal(q, scale) * scale;
+        
+        d_min = min(d_min, d);
+    }
+    
+    return d_min;
+}
+fn sdGoldenSpiral(p: vec3f, extrusion: f32) -> f32 {
+    // --- 1. CONSTANTS ---
+    // The Golden Spiral grows by a factor of Phi (1.618) every quarter turn.
+    // Growth rate 'b' = ln(phi) / (pi/2) approx 0.30635
+    let b = 0.30635; 
+    let PI_2 = 6.283185;
+
+    // --- 2. POLAR COORDINATES ---
+    let r = length(p.xy);
+    let theta = atan2(p.y, p.x);
+
+    // --- 3. LOG-POLAR MAPPING ---
+    // In Cartesian space, a spiral is curved.
+    // In Log-Polar space (log(r) vs theta), a logarithmic spiral is a straight line.
+    
+    // We calculate what the "angle" would be for our current radius
+    // based on the spiral equation: r = exp(b * angle)
+    // So: theoretical_angle = ln(r) / b
+    let val = log(r) / b;
+
+    // We compare our actual angle 'theta' to this 'val'.
+    // Because the spiral wraps around (periods of 2*PI), we need to 
+    // find the closest "turn" of the spiral.
+    
+    // Calculate difference and snap to nearest period (turn)
+    let n = round((val - theta) / PI_2);
+    
+    // Reconstruct the exact spiral radius for this specific turn
+    let spiral_angle = theta + n * PI_2;
+    let r_spiral = exp(b * spiral_angle);
+
+    // --- 4. 2D DISTANCE ---
+    // Calculate radial distance to the spiral line
+    // We dampen it slightly by the cosine of the spiral pitch to correct for the slope
+    // (0.95 is an approx correction for the golden spiral pitch)
+    let d_2d = abs(r - r_spiral) * 0.95;
+
+    // DEFINE LINE WIDTH
+    // Do you want the line to get thicker as it grows? 
+    // If yes, use: width = 0.1 * r_spiral;
+    // If no (constant thickness wire), use: width = 0.1;
+    let width = 0.05 + 0.1 * r_spiral; // Hybrid: grows slightly
+    
+    let d_spiral = d_2d - width;
+    
+    // Optional: Cut off the center singularity and the outer infinity
+    // r > 0.1 (center hole) and r < 10.0 (max size)
+    let bounds = max(0.1 - r, r - 8.0);
+    let d_bounded_spiral = max(d_spiral, bounds);
+
+    // --- 5. EXTRUDE TO 3D ---
+    // Combine with Z-axis depth
+    let d_z = abs(p.z) - extrusion;
+    
+    let w = vec2f(d_bounded_spiral, d_z);
+    return min(max(w.x, w.y), 0.0) + length(max(w, vec2f(0.0)));
+}
+
+ 
+
+
+fn flower(p: vec3f, location: vec3f) -> f32 {
+    let center = vec3f(0.0, 0.0, 0.0);
+    let pos = p - (center + location);
+
+    var q = opPolarRep(pos, 5.0, 0.1);
+
+    let curve = q.x * q.x*2 ; 
+    
+   
+    let wave = sin(q.x * 50.0) * 0.005 + sin(q.z * 50.0) * 0.005 +sin(q.x * 80.0) * 0.003 + sin(q.z * 80.0) * 0.003 ;
+    
+
+    q.y += curve + wave; 
+
+    
+    let size = 0.2;
+    let v1 = vec3f(0.0, 0.0, -1.0 * size * 0.5);
+    let v2 = vec3f(0.0, 0.0,  1.0 * size * 0.5); 
+    let v3 = vec3f(2.0 * size, 0.0, 0.0);       
+
+   
+    let d_flat = udTriangle(q, v1, v2, v3);
+    let d_sepals = d_flat - 0.01; 
+
+   
+
+    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.4, 0.20);
+
+
+
+   // let d = sdPetal(pos - vec3f(0.0, 0.0, 0.0));
+
+ 
+   
+   
+    // Combine with floor
+   let flower =  sdRose(pos); //min(d, min(d_sepals, d_bud));
+
+   return flower;
 }
 
 // --- The Main Scene Description ---
@@ -222,7 +413,7 @@ fn map(p_in: vec3f) -> vec2f {
     // 1. Ground
      var res = vec2f(p.y + 0.5, MAT_GROUND);
 
-    let flower_pos = vec3f(0.0, 1.0, 0.0);
+    let flower_pos = vec3f(0.0, 2.0, 0.0);
 
     let d_t =  flower(p, flower_pos);
 
@@ -238,9 +429,9 @@ fn map(p_in: vec3f) -> vec2f {
     let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) + 0.01;
     let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);
     
-    if (d_stem < res.x) { 
-        res = vec2f(d_stem, MAT_STEM); 
-    }
+    // if (d_stem < res.x) { 
+    //     res = vec2f(d_stem, MAT_STEM); 
+    // }
 
     // // 3. Leaves
     // // Leaf 1
@@ -339,8 +530,8 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     let time = uniforms.time * 2.0 ;
 
-    let ro = vec3f(sin(time), 2.5, -2.5); 
-    let lookAt = vec3f(1.0, 2, 0.0);
+    let ro = vec3f(sin(time), 3.0, -1.0); 
+    let lookAt = vec3f(0.0, 2, 0.0);
     
     let fwd = normalize(lookAt - ro);
     let right = normalize(cross(vec3f(0.0, 1.0, 0.0), fwd));
@@ -364,7 +555,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         if (t > 20.0) {    
             break;
         }
-        t = t + d * 0.8; 
+        t = t + d * 0.3; 
     }
 
     var final_color =vec3f(0.0, 0.0, 0.0);     
@@ -384,7 +575,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         if (abs(mat_id - MAT_GROUND) < 0.1) {
             albedo = vec3f(0.2, 0.2, 0.2);  
         } else if (abs(mat_id - MAT_STEM) < 0.1) {
-            albedo = vec3f(0.05, 0.3, 0.02);
+            albedo = vec3f(0.05, 0.15, 0.02);
         } else if (abs(mat_id - MAT_ROSE) < 0.1) {
             let height_factor = smoothstep(2.0, 2.4, p.y);
             albedo = mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);
