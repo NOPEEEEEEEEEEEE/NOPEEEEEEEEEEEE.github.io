@@ -13,30 +13,48 @@ draft: false
 
 ---
 
+This was my second project in my second year at BUAS, a deferred hybrid ray tracer I have built on top of a basic PBR DX12 renderer(which was my first project of Y2), using DXR.
+
 ![alt text](../HybridRayTracer/All.png)
-![alt text](../HybridRayTracer/Room2.png)
 
 # Goals
 
 ---
 
+- Further exploring ray tracing concepts and learning how to use DXR 
 
-![alt text](../HybridRayTracer/AO.png)
+- Getting to understand and implement a deferred renderer
 
+- Getting to write an article on about it
+
+- Exploring a modern rendering technique
+
+
+![alt text](../HybridRayTracer/PBR.png)
 # Features
 
 ---
 
+- Deferred rendering
+ 
+- PBR materials
 
-![alt text](../HybridRayTracer/Hybrid_RTs.png)
+- Soft Shadows
 
-![alt text](../HybridRayTracer/PBR.png)
+- Ambient occlusion 
 
-
-
-
-
-![alt text](../HybridRayTracer/Hard_Shadow.png)
-![alt text](../HybridRayTracer/Soft_Shadow.png)
+- Reflections
 
 
+![alt text](../HybridRayTracer/Hybrid_RTs.png) 
+
+
+# Implementation
+
+I have also made an article about the technicalities. You can check it out here if interested:
+
+{{< article link="/subpages/hybridrtarticle/" showSummary=true compactSummary=true >}}
+
+
+
+ 
