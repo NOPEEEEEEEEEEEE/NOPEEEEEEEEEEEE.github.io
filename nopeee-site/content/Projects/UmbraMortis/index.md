@@ -22,7 +22,7 @@ draft: false
 
 
 
-{{< article link="/subpages/umbramortiswork/" showSummary=true compactSummary=true >}}
+{{< article link="/Rabbithole/umbramortiswork/" showSummary=true compactSummary=true >}}
 
 
 

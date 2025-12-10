@@ -21,13 +21,13 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:1313/subpages/umbramortiswork/</loc>
+    <loc>http://localhost:1313/rabbithole/umbramortiswork/</loc>
     <lastmod>2025-07-06T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:1313/subpages/</loc>
+    <loc>http://localhost:1313/rabbithole/</loc>
     <lastmod>2025-07-06T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
@@ -39,7 +39,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:1313/subpages/pepirenderer/</loc>
+    <loc>http://localhost:1313/rabbithole/pepirenderer/</loc>
     <lastmod>2024-09-04T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
@@ -51,13 +51,19 @@
     <priority>0.5</priority>
   </url>
   <url>
+    <loc>http://localhost:1313/articles/</loc>
+    <lastmod>2023-12-04T00:00:00+00:00</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
     <loc>http://localhost:1313/projects/hybridraytracer/</loc>
     <lastmod>2023-12-04T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:1313/subpages/hybridrtarticle/</loc>
+    <loc>http://localhost:1313/articles/hybridrtarticle/</loc>
     <lastmod>2023-12-04T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>
@@ -75,7 +81,7 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>http://localhost:1313/subpages/galacticgoowork/</loc>
+    <loc>http://localhost:1313/rabbithole/galacticgoowork/</loc>
     <lastmod>2023-09-04T00:00:00+00:00</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.5</priority>

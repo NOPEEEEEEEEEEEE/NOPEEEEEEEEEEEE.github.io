@@ -40,7 +40,7 @@ This was my second project in my second year at BUAS, a deferred hybrid ray trac
 - PBR materials
 
 - Soft Shadows
-
+ 
 - Ambient occlusion 
 
 - Reflections
@@ -53,7 +53,7 @@ This was my second project in my second year at BUAS, a deferred hybrid ray trac
 
 I have also made an article about the technicalities. You can check it out here if interested:
 
-{{< article link="/subpages/hybridrtarticle/" showSummary=true compactSummary=true >}}
+{{< article link="/articles/hybridrtarticle/" showSummary=true compactSummary=true >}}
 
 
 

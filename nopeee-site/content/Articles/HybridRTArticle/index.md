@@ -22,9 +22,8 @@ If you are not experienced, I recommend  watching [this video](https://youtu.be/
 
 ![shadow](../hybridrtarticle/All.png) 
 
-## My initial planning for this project:
+## The plan:
 
-**Below is the hierarchy of these features, reflecting my initial strategy and focus areas:**
 
 My focus was on building a ray tracer that would run in real time. For that purpose, I chose to implement the following features:
 
@@ -34,13 +33,13 @@ My focus was on building a ray tracer that would run in real time. For that purp
 
 * **Reflections** 
 
-* Refractions
-
 * **Ambient Occlusion**
+
+* Refractions
 
 * Support for multiple lights
 
-**In the limited time I had, I managed to implement the bolded features above.**
+**In the limited time I had (8 weeks), I only managed to implement the bolded features above.**
 
 ## Some basic theory
 
@@ -57,12 +56,12 @@ A G-Buffer comprises multiple textures that hold data about the scene’s geomet
 For my project, I used four render targets to store the world positions of pixels, surface normals, albedo color, and material information (roughness and metallic properties).
 
 
-### Why do this?
+#### Why do this?
 
 Rasterizers are fast, so leveraging a G-Buffer to avoid the need for primary rays(the rays traced from the camera towards the scene) in the ray tracer boosts performance, particularly on older hardware not optimized for ray tracing.
 
 
-### Using the G-Buffer in the ray tracer
+#### Using the G-Buffer in the ray tracer
 
 Normally, a ray has to be traced for each of the pixels on the screen, from the camera to the scene. Each ray has to be checked against the geometry in the scene and return values like color or distance. 
 
@@ -70,7 +69,7 @@ All of the data that that is collected with the primary rays, can also be collec
 
 Textures in the ray generation shader access this data, aiding in tracing other ray types like shadow, reflection, and ambient occlusion rays.
 
-## Capabilities of My Ray Tracer
+## Capabilities of this Ray Tracer
 
 This distributed ray tracer traces multiple samples for each effect and integrates their contributions.  While this process introduces noise due to its sthocastic nature, more samples yield results closer to realistic illumination. Past frame samples can also be used for refinement.
 
@@ -97,7 +96,7 @@ In ray tracing, light calculation is reversed compared to real life. A ray sent 
 
 PBR (Physically Based Rendering) enhances realism. It defines material properties with two values: roughness and metallic. The Cook-Torrance microfacet model, a widely used illumination model, considers surfaces as collections of tiny, perfectly reflecting microfacets.
 
- Roughness affects the scattering of these microfacet angles.In ray tracing, this translates to sampling random microfacet directions, with the distribution based on a mathematical formula. We then use the angle of the microfacets instead of the surface normal, to calculate the reflected rays.  Different angles lead to varied light contributions, altering the material's appearance.
+ Roughness affects the scattering of these microfacet angles. In ray tracing, this translates to sampling random microfacet directions, with the distribution based on a mathematical formula. We then use the angle of the microfacets instead of the surface normal, to calculate the reflected rays.  Different angles lead to varied light contributions, altering the material's appearance.
 
 The metallic value influences each reflection ray's contribution.
 
@@ -105,7 +104,7 @@ The metallic value influences each reflection ray's contribution.
 
 ### Firefly reduction
 
-Firefly reduction is a method of filtering noise, targeting the elimination of abnormally bright pixels. These bright spots, often referred to as 'fireflies', arise from sampling directions that, while low in probability, yield disproportionately high energy. This could employ loss of energy throughout the scene, since removing the bright pixels means removal of energy. However, this loss is a worthwhile sacrifice for the significant improvement it brings to the image quality. 
+Firefly reduction is a method of filtering noise, targeting the elimination of abnormally bright pixels. These bright spots, often referred to as 'fireflies', arise from sampling directions that, while low in probability, yield disproportionately high energy. This could employ loss of energy throughout the scene, since removing the bright pixels means removal of energy. However, this loss could be a worthwhile sacrifice for the significant improvement it brings to the image quality. 
 
 <iframe frameborder="0" class="juxtapose" width="100%" height="546.3876923076923" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=6fc215b2-baf1-11ee-9ddd-3f41531135b6"></iframe>
 
@@ -139,7 +138,7 @@ Using this calculated position, I determine the direction and length of the ray 
         float3 lightDir = lightPos - hitLocation;
 ```
 
-I made sure to avoid calling a closest hit shader since it would be unnecessary(free performance!). I use 2 flags for the TraceRay function to bypass  unnecessary checks, resulting in only the miss shader being called, which returns a value of false.
+I made sure to avoid calling a closest hit shader since it would be unnecessary (free performance!). I use 2 flags for the TraceRay function to bypass  unnecessary checks, resulting in only the miss shader being called, which returns a value of false.
 ```cpp
 ...
    ShadowHitInfo shadowPayload;
@@ -435,7 +434,7 @@ This algorithm uses an user input value as a threshold, to keep the pixels that 
 
 <iframe frameborder="0" class="juxtapose" width="100%" height="466" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=bf787e24-bb0b-11ee-9ddd-3f41531135b6"></iframe>
 
-The information presented here is minimal, but hopefully, it sparks interest in this field. This project proved to be an invaluable source of knowledge for me, and I totally recommend giving it a try. 
+The information presented here is minimal, but hopefully, it sparks interest in this field. This project proved to be a great source of knowledge for me, and I totally recommend giving it a try. 
 
 Based on my experience, DX12 was a great API to use for this purpose. Admittedly, the learning stage was challenging. Yet, once mastered, DX12 proved to be an exceptionally powerful tool
 

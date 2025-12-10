@@ -47,79 +47,116 @@
     });
 
     // --- 6. UNIFORM BUFFER SETUP ---
-    const uniformBufferSize = 16; 
-    const uniformBuffer = device.createBuffer({
-        size: uniformBufferSize,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  // We need more space now! 
+  // Old: [w, h, time, padding] (16 bytes)
+  // New: [w, h, time, padding, yaw, pitch, padding, padding] (32 bytes)
+  const uniformBufferSize = 32; 
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const uniformValues = new Float32Array(8); // Increased to 8 floats
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+    ],
+  });
+
+  // --- MOUSE CONTROL VARIABLES ---
+  let isDragging = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  
+  // Camera Angles (Default view)
+  // Yaw: Rotation around Y axis
+  // Pitch: Up/Down look
+  let cameraYaw = 0.5; 
+  let cameraPitch = 0.5; 
+
+  // --- MOUSE EVENT LISTENERS ---
+  window.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+  window.addEventListener("mouseup", () => {
+      isDragging = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+
+      const sensitivity = 0.005;
+      const deltaX = e.clientX - lastMouseX;
+      const deltaY = e.clientY - lastMouseY;
+
+      // Update angles
+      cameraYaw -= deltaX * sensitivity;
+      cameraPitch += deltaY * sensitivity;
+
+      // Clamp Pitch so you don't flip upside down
+      // Limit between -89 degrees and +89 degrees (in radians)
+      cameraPitch = Math.max(-1.5, Math.min(1.5, cameraPitch));
+
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+
+  // --- 7. RESIZE HANDLER ---
+  const resize = () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = w;
+    canvas.height = h;
+    context.configure({
+      device: device,
+      format: navigator.gpu.getPreferredCanvasFormat(),
+      alphaMode: "premultiplied",
     });
+    uniformValues[0] = w;
+    uniformValues[1] = h;
+  };
+  window.addEventListener("resize", resize);
+  resize(); 
 
-    const uniformValues = new Float32Array(4); // Array of 4 items
+  function frame() {
+    const time = performance.now() / 1000;
+    
+    // Update Uniform Array
+    uniformValues[2] = time;       // Time
+    uniformValues[4] = cameraYaw;  // Camera Yaw
+    uniformValues[5] = cameraPitch;// Camera Pitch
 
-    const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-            { binding: 0, resource: { buffer: uniformBuffer } },
-        ],
-    });
+    // Write to GPU
+    device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
 
-    // --- 7. RESIZE HANDLER ---
-    const resize = () => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-
-        canvas.width = w;
-        canvas.height = h;
-
-        context.configure({
-            device: device,
-            format: navigator.gpu.getPreferredCanvasFormat(),
-            alphaMode: "premultiplied",
-        });
-
-        // Only update index 0 and 1 here
-        uniformValues[0] = w;
-        uniformValues[1] = h;
-        // We will upload in the frame loop now
+    const commandEncoder = device.createCommandEncoder();
+    const textureView = context.getCurrentTexture().createView();
+    
+    const renderPassDescriptor = {
+      colorAttachments: [{
+        view: textureView,
+        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+        loadOp: "clear",
+        storeOp: "store",
+      }],
     };
-
-    window.addEventListener("resize", resize);
-    resize(); 
-
-    function frame() {
-        // UPDATE TIME
-        // performance.now() gives milliseconds. 
-        // Divide by 1000 to get Seconds.
-        const time = performance.now() / 1000;
-        
-        // Write to index 2
-        uniformValues[2] = time; 
-
-        // Upload the whole array (width, height, time, padding)
-        device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
-
-        // Standard Render Code...
-        const commandEncoder = device.createCommandEncoder();
-        const textureView = context.getCurrentTexture().createView();
-        
-        const renderPassDescriptor = {
-            colorAttachments: [{
-                view: textureView,
-                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
-                loadOp: "clear",
-                storeOp: "store",
-            }],
-        };
-        
-        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-        passEncoder.setPipeline(pipeline);
-        passEncoder.setBindGroup(0, bindGroup); 
-        passEncoder.draw(3);
-        passEncoder.end();
-        
-        device.queue.submit([commandEncoder.finish()]);
-        requestAnimationFrame(frame);
-    }
-    frame();
+    
+    const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup); 
+    passEncoder.draw(3);
+    passEncoder.end();
+    
+    device.queue.submit([commandEncoder.finish()]);
+    requestAnimationFrame(frame);
+  }
+  frame();
   }
   initWebGPU();
 </script>

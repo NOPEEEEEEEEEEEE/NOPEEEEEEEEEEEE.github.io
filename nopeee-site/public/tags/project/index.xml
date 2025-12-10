@@ -23,12 +23,12 @@
     
     <item>
       <title>My contribution to Umbra Mortis</title>
-      <link>http://localhost:1313/subpages/umbramortiswork/</link>
+      <link>http://localhost:1313/rabbithole/umbramortiswork/</link>
       <pubDate>Sun, 06 Jul 2025 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/subpages/umbramortiswork/</guid>
+      <guid>http://localhost:1313/rabbithole/umbramortiswork/</guid>
       <description>Multiplayer zombie FPS made in UE5</description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/umbramortiswork/cover.jpg" />
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/rabbithole/umbramortiswork/cover.jpg" />
     </item>
     
     <item>
@@ -43,12 +43,12 @@
     
     <item>
       <title>PEPI Engine Renderer </title>
-      <link>http://localhost:1313/subpages/pepirenderer/</link>
+      <link>http://localhost:1313/rabbithole/pepirenderer/</link>
       <pubDate>Wed, 04 Sep 2024 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/subpages/pepirenderer/</guid>
+      <guid>http://localhost:1313/rabbithole/pepirenderer/</guid>
       <description>DX12/DXR renderer built specifically for RTS games</description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/pepirenderer/cover.png" />
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/rabbithole/pepirenderer/cover.png" />
     </item>
     
     <item>
@@ -73,12 +73,12 @@
     
     <item>
       <title>Implementing a Hybrid Ray Tracer with DXR</title>
-      <link>http://localhost:1313/subpages/hybridrtarticle/</link>
+      <link>http://localhost:1313/articles/hybridrtarticle/</link>
       <pubDate>Mon, 04 Dec 2023 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/subpages/hybridrtarticle/</guid>
+      <guid>http://localhost:1313/articles/hybridrtarticle/</guid>
       <description>A cool project I made</description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/hybridrtarticle/cover.png" />
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/articles/hybridrtarticle/cover.png" />
     </item>
     
     <item>
@@ -103,12 +103,12 @@
     
     <item>
       <title>My contribution on Galactic Goo </title>
-      <link>http://localhost:1313/subpages/galacticgoowork/</link>
+      <link>http://localhost:1313/rabbithole/galacticgoowork/</link>
       <pubDate>Mon, 04 Sep 2023 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
-      <guid>http://localhost:1313/subpages/galacticgoowork/</guid>
+      <guid>http://localhost:1313/rabbithole/galacticgoowork/</guid>
       <description></description>
-      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/subpages/galacticgoowork/cover.png" />
+      <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/rabbithole/galacticgoowork/cover.png" />
     </item>
     
     <item>

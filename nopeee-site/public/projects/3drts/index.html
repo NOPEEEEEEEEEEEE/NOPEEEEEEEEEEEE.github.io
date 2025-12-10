@@ -254,6 +254,20 @@
       
         
   <a
+  href="/articles/"
+  
+  class="flex items-center text-gray-500 hover:text-primary-600 dark:hover:text-primary-400">
+  
+  <p class="text-base font-medium" title="Articles">
+    Articles
+  </p>
+</a>
+
+
+
+      
+        
+  <a
   href="/projects/"
   
   class="flex items-center text-gray-500 hover:text-primary-600 dark:hover:text-primary-400">
@@ -372,6 +386,22 @@
     
     <p class="text-bg font-bg" title="About Me">
       About Me
+    </p>
+  </a>
+</li>
+
+
+
+            
+              
+  <li class="mt-1">
+  <a
+    href="/articles/"
+    
+    class="flex items-center text-gray-500 hover:text-primary-600 dark:hover:text-primary-400">
+    
+    <p class="text-bg font-bg" title="Articles">
+      Articles
     </p>
   </a>
 </li>
@@ -1031,7 +1061,7 @@
     
     
     
-        const shaderCode = `struct Uniforms \u007b\r\n\r\n  resolution: vec2f,\r\n  time: f32,\r\n\u007d\r\n\r\n\r\n\r\n@group(0) @binding(0) var\u003cuniform\u003e uniforms: Uniforms;\r\n\r\n\/\/ Constants for materials\r\nconst MAT_GROUND = 0.0;\r\nconst MAT_STEM = 1.0;\r\nconst MAT_ROSE = 2.0;\r\n\r\n@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -\u003e @builtin(position) vec4f \u007b\r\n  var pos = array\u003cvec2f, 3\u003e(\r\n    vec2f(-1.0, -1.0),\r\n    vec2f(3.0, -1.0),\r\n    vec2f(-1.0, 3.0)\r\n  );\r\n  return vec4f(pos[in_vertex_index], 0.0, 1.0);\r\n\u007d\r\n\r\n\r\n\r\n\/\/ --- SDF Primitive Helpers ---\r\nfn opRotateY(p: vec3f, angle: f32) -\u003e vec3f \u007b\r\n    let c = cos(angle);\r\n    let s = sin(angle);\r\n    return vec3f(c * p.x - s * p.z, p.y, s * p.x \u002b c * p.z);\r\n\u007d\r\n\r\n\/\/ Rotates around the X axis (Pitch - tilting forward\/back)\r\nfn opRotateX(p: vec3f, angle: f32) -\u003e vec3f \u007b\r\n    let c = cos(angle);\r\n    let s = sin(angle);\r\n    return vec3f(p.x, c * p.y - s * p.z, s * p.y \u002b c * p.z);\r\n\u007d\r\n\r\n\r\nfn rot2D(p: vec2f, angle: f32) -\u003e vec2f \u007b\r\n    let s = sin(angle);\r\n    let c = cos(angle);\r\n    return vec2f(c * p.x - s * p.y, s * p.x \u002b c * p.y);\r\n\u007d\r\n\r\nfn sdSphere(p: vec3f, s: f32) -\u003e f32 \u007b\r\n  return length(p) - s;\r\n\u007d\r\n\r\nfn sdCappedCylinder(p: vec3f, h: f32, r: f32) -\u003e f32 \u007b\r\n  let d = abs(vec2f(length(p.xz),p.y)) - vec2f(r,h);\r\n  \/\/ FIXED: max(d, vec2f(0.0)) instead of max(d, 0.0)\r\n  return min(max(d.x,d.y),0.0) \u002b length(max(d, vec2f(0.0)));\r\n\u007d\r\n\r\nfn sdEllipsoid(p: vec3f, r: vec3f) -\u003e f32 \u007b\r\n    let k0 = length(p\/r);\r\n    let k1 = length(p\/(r*r));\r\n    return k0*(k0-1.0)\/k1;\r\n\u007d\r\n\r\n\/\/ --- SDF Combination Helpers ---\r\n\r\nfn smin(a: f32, b: f32, k: f32) -\u003e f32 \u007b\r\n    let h = clamp(0.5 \u002b 0.5 * (b - a) \/ k, 0.0, 1.0);\r\n    return mix(b, a, h) - k * h * (1.0 - h);\r\n\u007d\r\n\r\nfn opCheapBend(p: vec3f) -\u003e vec3f \u007b\r\n    let k = 10.0; \/\/ The amount to bend\r\n    \r\n    let c = cos(k * p.x);\r\n    let s = sin(k * p.x);\r\n    \r\n    \/\/ Construct 2x2 Rotation Matrix\r\n    \/\/ Note: WGSL matrices are column-major, just like GLSL\r\n    let m = mat2x2f(c, -s, s, c);\r\n    \r\n    \/\/ Apply rotation to X and Y, leave Z alone\r\n    \/\/ The matrix multiplication (m * p.xy) works natively\r\n    return vec3f(m * p.xy, p.z);\r\n\u007d\r\n\r\nfn sdVerticalVesicaSegment(p: vec3f, h_in: f32, w_in: f32) -\u003e f32 \u007b\r\n    \/\/ 1. Create mutable local copies of the inputs\r\n    var h = h_in * 0.5;\r\n    var w = w_in * 0.5;\r\n\r\n    \/\/ 2. Shape constants\r\n    let d = 0.5 * (h * h - w * w) \/ w;\r\n    \r\n    \/\/ 3. Project to 2D\r\n    let q = vec2f(length(p.xz), abs(p.y - h));\r\n    \r\n    \/\/ 4. Feature selection\r\n    \/\/ GLSL: (condition) ? true : false\r\n    \/\/ WGSL: select(false, true, condition) \u003c-- IMPORTANT!\r\n    let condition = (h * q.x \u003c d * (q.y - h));\r\n    \r\n    let t = select(\r\n        vec3f(-d, 0.0, d \u002b w), \/\/ The \u0022False\u0022 case\r\n        vec3f(0.0, h, 0.0),    \/\/ The \u0022True\u0022 case\r\n        condition\r\n    );\r\n    \r\n    \/\/ 5. Distance\r\n    return length(q - t.xy) - t.z;\r\n\u007d\r\n\r\nfn sdTriPrism(p: vec3f, h: vec2f) -\u003e f32 \u007b\r\n    let q = abs(p);\r\n    \r\n    \/\/ h.x = Size (Radius of the triangle)\r\n    \/\/ h.y = Thickness (Depth in Z axis)\r\n    \r\n    return max(\r\n        q.z - h.y, \r\n        max(\r\n            q.x * 0.866025 \u002b p.y * 0.5, \r\n            -p.y\r\n        ) - h.x * 0.5\r\n    );\r\n\u007d\r\n\r\n\r\nfn dot2(v: vec3f) -\u003e f32 \u007b\r\n    return dot(v, v);\r\n\u007d\r\n\r\nfn udTriangle(p: vec3f, a: vec3f, b: vec3f, c: vec3f) -\u003e f32 \u007b\r\n    let ba = b - a; \r\n    let pa = p - a;\r\n    let cb = c - b; \r\n    let pb = p - b;\r\n    let ac = a - c; \r\n    let pc = p - c;\r\n    \r\n    let nor = cross(ba, ac);\r\n\r\n    \/\/ Calculate the 3 Barycentric\/projection conditions\r\n    let cond_val = sign(dot(cross(ba, nor), pa)) \u002b\r\n                   sign(dot(cross(cb, nor), pb)) \u002b\r\n                   sign(dot(cross(ac, nor), pc));\r\n\r\n    \/\/ EDGE DISTANCE MATH\r\n    \/\/ Calculates distance to the 3 distinct line segments\r\n    let d_edge_a = dot2(ba * clamp(dot(ba, pa) \/ dot2(ba), 0.0, 1.0) - pa);\r\n    let d_edge_b = dot2(cb * clamp(dot(cb, pb) \/ dot2(cb), 0.0, 1.0) - pb);\r\n    let d_edge_c = dot2(ac * clamp(dot(ac, pc) \/ dot2(ac), 0.0, 1.0) - pc);\r\n    \r\n    let dist_edge = min(min(d_edge_a, d_edge_b), d_edge_c);\r\n\r\n    \/\/ FACE DISTANCE MATH\r\n    \/\/ Calculates distance to the plane\r\n    let dist_face = dot(nor, pa) * dot(nor, pa) \/ dot2(nor);\r\n\r\n    \/\/ SELECT\r\n    \/\/ If cond_val \u003c 2.0, we are \u0022outside\u0022 the projection, use edge distance.\r\n    \/\/ Otherwise, use face distance.\r\n    let result_sq = select(\r\n        dist_face,   \/\/ False case (cond \u003e= 2.0) -\u003e Face\r\n        dist_edge,   \/\/ True case  (cond \u003c 2.0)  -\u003e Edge\r\n        cond_val \u003c 2.0\r\n    );\r\n\r\n    return sqrt(result_sq);\r\n\u007d\r\n\r\nfn opPolarRep(p: vec3f, repetitions: f32, offset_radius: f32) -\u003e vec3f \u007b\r\n    let PI = 3.14159265;\r\n    \r\n    let angle_step = 2.0 * PI \/ repetitions;\r\n\r\n    let current_angle = atan2(p.z, p.x);\r\n    let dist = length(p.xz);\r\n\r\n  \r\n    let sector = round(current_angle \/ angle_step);\r\n\r\n \r\n    let new_angle = current_angle - sector * angle_step;\r\n\r\n   \r\n    let q_xz = vec2f(\r\n        cos(new_angle) * dist,\r\n        sin(new_angle) * dist\r\n    );\r\n    \r\n   \r\n    return vec3f(q_xz.x - offset_radius, p.y, q_xz.y);\r\n\u007d\r\nfn sdVesica(p: vec2f, r: f32, d: f32) -\u003e f32 \u007b\r\n    let p_abs = abs(p);\r\n    let b = sqrt(r * r - d * d);\r\n    \r\n    let condition = (p_abs.y - b) * d \u003e p_abs.x * b;\r\n    \r\n    let d1 = length(p_abs - vec2f(0.0, b));\r\n    let d2 = length(p_abs - vec2f(-d, 0.0)) - r;\r\n    \r\n    return select(d2, d1, condition);\r\n\u007d\r\nfn smax(a: f32, b: f32, k: f32) -\u003e f32 \u007b\r\n    let h = clamp(0.5 \u002b 0.5 * (a - b) \/ k, 0.0, 1.0);\r\n    return mix(a, b, h) \u002b k * h * (1.0 - h);\r\n\u007d\r\nfn sdPetal(p: vec3f, s: f32) -\u003e f32 \u007b\r\n    var pos = p;\r\n\r\n    \/\/ Normalize \u0027s\u0027 for blending\r\n    \/\/ s is now between 0.2 and 0.35\r\n    let t = smoothstep(0.2, 0.35, s);\r\n\r\n    \/\/ --- BENDING ---\r\n    \r\n    \/\/ 1. SIDE CUPPING (Spoon shape)\r\n    \/\/ Stronger on inside (2.0), weaker on outside (1.0)\r\n    let cup_strength = mix(2.0, 0.3, t);\r\n    pos.z \u002b= pos.x * pos.x * cup_strength;\r\n\r\n    \/\/ 2. MAIN CURL (Backward lean)\r\n    let main_curl = mix(0.05, 0.1, t);\r\n    pos.z -= pow(max(pos.y \u002b 0.4, 0.0), 2.0) * main_curl;\r\n\r\n    \/\/ 3. TIP RECURVE (The \u0022Rose Effect\u0022)\r\n    \/\/ Only applies to top 30% of petal\r\n    let tip_height = max(pos.y - 0.3, 0.0);\r\n    \r\n    \/\/ We reduced the multiplier from 15.0 to 5.0 to stop the \u0022Huge\u0022 explosion\r\n    let recurve_amount = pow(tip_height, 2.5) * 5.0 * t;\r\n    pos.z -= recurve_amount;\r\n\r\n\r\n    \/\/ --- SHAPE ---\r\n    let taper_strength = mix(0.5, 0.8, t);\r\n    let taper = 1.0 \u002b taper_strength * pos.y;\r\n    \r\n    \/\/ Clamp taper to be safe\r\n    let p_x = pos.x \/ clamp(taper, 0.1, 3.0);\r\n    \r\n    \/\/ Base Circle\r\n    let d_2d = length(vec2f(p_x, pos.y)) - 0.7; \r\n\r\n    \/\/ Cut Top\r\n    let d_flat_top = smax(d_2d, pos.y - 0.35, 0.05);\r\n\r\n    \/\/ Thickness\r\n    \/\/ Scale distance by 0.6 to avoid artifacts\r\n    let d_final_2d = d_flat_top * 0.6; \r\n\r\n    let thickness = 0.01; \r\n    let d_z = abs(pos.z) - thickness;\r\n\r\n    let w = vec2f(d_2d, d_z);\r\n    return min(max(w.x, w.y), 0.0) \u002b length(max(w, vec2f(0.0)));\r\n\u007d\r\n\r\n\r\n\r\nfn sdRose(p: vec3f) -\u003e f32 \u007b\r\n    var d_min = 100.0;\r\n    \r\n    let petal_count = 10.0; \r\n    let golden_angle = 2.39996; \r\n    \r\n    for (var i = 1.0; i \u003c petal_count; i \u002b= 1.0) \u007b\r\n        \r\n        let r = 0.03 * sqrt(i); \/\/ Kept radius compact\r\n        let theta = i * golden_angle;\r\n        \r\n        \/\/ Lower outer petals\r\n        let petal_center = vec3f(r * cos(theta), -r * 0.2, r * sin(theta));\r\n\r\n        \/\/ --- FIX 1: REDUCED SCALE RANGE ---\r\n        \/\/ Was: 0.2 \u002b ... * 0.3 (Result 0.5)\r\n        \/\/ Now: 0.2 \u002b ... * 0.15 (Result 0.35)\r\n        \/\/ This prevents the outer petals from becoming giant monsters.\r\n        let scale = 0.2 \u002b (i \/ petal_count) * 0.15;\r\n\r\n        var q = p - petal_center;\r\n        \r\n        q = opRotateY(q, -theta \u002b 1.57);\r\n        \r\n        \/\/ --- FIX 2: TILT ADJUSTMENT ---\r\n        \/\/ Inner: -0.2 (Tucked in)\r\n        \/\/ Outer: 0.6 (Opened up, but not falling over)\r\n        let tilt = -0.2 \u002b (i \/ petal_count) * 0.8; \r\n        q = opRotateX(q, -tilt);\r\n        \r\n        \/\/ Scale the coordinate space\r\n        q = q \/ scale;\r\n\r\n        \/\/ Calculate distance and multiply back\r\n        let d = sdPetal(q, scale) * scale;\r\n        \r\n        d_min = min(d_min, d);\r\n    \u007d\r\n    \r\n    return d_min;\r\n\u007d\r\nfn sdGoldenSpiral(p: vec3f, extrusion: f32) -\u003e f32 \u007b\r\n    \/\/ --- 1. CONSTANTS ---\r\n    \/\/ The Golden Spiral grows by a factor of Phi (1.618) every quarter turn.\r\n    \/\/ Growth rate \u0027b\u0027 = ln(phi) \/ (pi\/2) approx 0.30635\r\n    let b = 0.30635; \r\n    let PI_2 = 6.283185;\r\n\r\n    \/\/ --- 2. POLAR COORDINATES ---\r\n    let r = length(p.xy);\r\n    let theta = atan2(p.y, p.x);\r\n\r\n    \/\/ --- 3. LOG-POLAR MAPPING ---\r\n    \/\/ In Cartesian space, a spiral is curved.\r\n    \/\/ In Log-Polar space (log(r) vs theta), a logarithmic spiral is a straight line.\r\n    \r\n    \/\/ We calculate what the \u0022angle\u0022 would be for our current radius\r\n    \/\/ based on the spiral equation: r = exp(b * angle)\r\n    \/\/ So: theoretical_angle = ln(r) \/ b\r\n    let val = log(r) \/ b;\r\n\r\n    \/\/ We compare our actual angle \u0027theta\u0027 to this \u0027val\u0027.\r\n    \/\/ Because the spiral wraps around (periods of 2*PI), we need to \r\n    \/\/ find the closest \u0022turn\u0022 of the spiral.\r\n    \r\n    \/\/ Calculate difference and snap to nearest period (turn)\r\n    let n = round((val - theta) \/ PI_2);\r\n    \r\n    \/\/ Reconstruct the exact spiral radius for this specific turn\r\n    let spiral_angle = theta \u002b n * PI_2;\r\n    let r_spiral = exp(b * spiral_angle);\r\n\r\n    \/\/ --- 4. 2D DISTANCE ---\r\n    \/\/ Calculate radial distance to the spiral line\r\n    \/\/ We dampen it slightly by the cosine of the spiral pitch to correct for the slope\r\n    \/\/ (0.95 is an approx correction for the golden spiral pitch)\r\n    let d_2d = abs(r - r_spiral) * 0.95;\r\n\r\n    \/\/ DEFINE LINE WIDTH\r\n    \/\/ Do you want the line to get thicker as it grows? \r\n    \/\/ If yes, use: width = 0.1 * r_spiral;\r\n    \/\/ If no (constant thickness wire), use: width = 0.1;\r\n    let width = 0.05 \u002b 0.1 * r_spiral; \/\/ Hybrid: grows slightly\r\n    \r\n    let d_spiral = d_2d - width;\r\n    \r\n    \/\/ Optional: Cut off the center singularity and the outer infinity\r\n    \/\/ r \u003e 0.1 (center hole) and r \u003c 10.0 (max size)\r\n    let bounds = max(0.1 - r, r - 8.0);\r\n    let d_bounded_spiral = max(d_spiral, bounds);\r\n\r\n    \/\/ --- 5. EXTRUDE TO 3D ---\r\n    \/\/ Combine with Z-axis depth\r\n    let d_z = abs(p.z) - extrusion;\r\n    \r\n    let w = vec2f(d_bounded_spiral, d_z);\r\n    return min(max(w.x, w.y), 0.0) \u002b length(max(w, vec2f(0.0)));\r\n\u007d\r\n\r\n \r\n\r\n\r\nfn flower(p: vec3f, location: vec3f) -\u003e f32 \u007b\r\n    let center = vec3f(0.0, 0.0, 0.0);\r\n    let pos = p - (center \u002b location);\r\n\r\n    var q = opPolarRep(pos, 5.0, 0.1);\r\n\r\n    let curve = q.x * q.x*2 ; \r\n    \r\n   \r\n    let wave = sin(q.x * 50.0) * 0.005 \u002b sin(q.z * 50.0) * 0.005 \u002bsin(q.x * 80.0) * 0.003 \u002b sin(q.z * 80.0) * 0.003 ;\r\n    \r\n\r\n    q.y \u002b= curve \u002b wave; \r\n\r\n    \r\n    let size = 0.2;\r\n    let v1 = vec3f(0.0, 0.0, -1.0 * size * 0.5);\r\n    let v2 = vec3f(0.0, 0.0,  1.0 * size * 0.5); \r\n    let v3 = vec3f(2.0 * size, 0.0, 0.0);       \r\n\r\n   \r\n    let d_flat = udTriangle(q, v1, v2, v3);\r\n    let d_sepals = d_flat - 0.01; \r\n\r\n   \r\n\r\n    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.4, 0.20);\r\n\r\n\r\n\r\n   \/\/ let d = sdPetal(pos - vec3f(0.0, 0.0, 0.0));\r\n\r\n \r\n   \r\n   \r\n    \/\/ Combine with floor\r\n   let flower =  sdRose(pos); \/\/min(d, min(d_sepals, d_bud));\r\n\r\n   return flower;\r\n\u007d\r\n\r\n\/\/ --- The Main Scene Description ---\r\n\r\nfn map(p_in: vec3f) -\u003e vec2f \u007b\r\n    var p = p_in;\r\n    \r\n    let time = uniforms.time ;\r\n\r\n    \/\/ 1. Ground\r\n     var res = vec2f(p.y \u002b 0.5, MAT_GROUND);\r\n\r\n    let flower_pos = vec3f(0.0, 2.0, 0.0);\r\n\r\n    let d_t =  flower(p, flower_pos);\r\n\r\n    if (d_t \u003c res.x) \u007b \r\n        res = vec2f(d_t, MAT_STEM); \r\n    \u007d\r\n\r\n    \/\/ \/\/ 2. Stem\r\n    var p_stem = p;\r\n    p_stem.x = p_stem.x \u002b sin(p_stem.y * 2.0) * 0.1;\r\n    p_stem.z = p_stem.z \u002b cos(p_stem.y * 3.0) * 0.05;\r\n    \r\n    let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) \u002b 0.01;\r\n    let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);\r\n    \r\n    \/\/ if (d_stem \u003c res.x) \u007b \r\n    \/\/     res = vec2f(d_stem, MAT_STEM); \r\n    \/\/ \u007d\r\n\r\n    \/\/ \/\/ 3. Leaves\r\n    \/\/ \/\/ Leaf 1\r\n    \/\/ var p_leaf1 = p - vec3f(0.1, 0.3, 0.1); \r\n    \r\n    \/\/ \/\/ Manual rotation YZ\r\n    \/\/ let rot_leaf1_yz = rot2D(vec2f(p_leaf1.y, p_leaf1.z), 0.8);\r\n    \/\/ p_leaf1.y = rot_leaf1_yz.x;\r\n    \/\/ p_leaf1.z = rot_leaf1_yz.y;\r\n    \r\n    \/\/ \/\/ Manual rotation XZ\r\n    \/\/ let rot_leaf1_xz = rot2D(vec2f(p_leaf1.x, p_leaf1.z), 0.5);\r\n    \/\/ p_leaf1.x = rot_leaf1_xz.x;\r\n    \/\/ p_leaf1.z = rot_leaf1_xz.y;\r\n\r\n    \/\/ let d_leaf1 = sdEllipsoid(p_leaf1, vec3f(0.2, 0.02, 0.1));\r\n\r\n    \/\/ \/\/ Leaf 2\r\n    \/\/ var p_leaf2 = p - vec3f(-0.1, 0.8, -0.1);\r\n    \r\n    \/\/ \/\/ Manual rotation YZ\r\n    \/\/ let rot_leaf2_yz = rot2D(vec2f(p_leaf2.y, p_leaf2.z), 1.0);\r\n    \/\/ p_leaf2.y = rot_leaf2_yz.x;\r\n    \/\/ p_leaf2.z = rot_leaf2_yz.y;\r\n\r\n    \/\/ \/\/ Manual rotation XZ\r\n    \/\/ let rot_leaf2_xz = rot2D(vec2f(p_leaf2.x, p_leaf2.z), -2.0);\r\n    \/\/ p_leaf2.x = rot_leaf2_xz.x;\r\n    \/\/ p_leaf2.z = rot_leaf2_xz.y;\r\n    \r\n    \/\/ let d_leaf2 = sdEllipsoid(p_leaf2, vec3f(0.18, 0.02, 0.09));\r\n    \r\n    \/\/ let d_leaves = min(d_leaf1, d_leaf2);\r\n    \/\/ res.x = smin(res.x, d_leaves, 0.05);\r\n\r\n    \/\/ \/\/ 4. Rose Head\r\n    \/\/ var p_rose = p - vec3f(0.0, 2.2, 0.0);\r\n    \/\/ let r_rose = length(p_rose);\r\n    \/\/ let safe_r = max(r_rose, 0.001);\r\n    \r\n    \/\/ let theta = atan2(p_rose.z, p_rose.x); \r\n    \/\/ let phi = acos(clamp(p_rose.y \/ safe_r, -1.0, 1.0)); \r\n\r\n    \/\/ var petal_dist = r_rose - 0.35;\r\n    \/\/ petal_dist = petal_dist \u002b sin(theta * 5.0 \u002b phi * 3.0) * 0.03 * smoothstep(0.0, 1.0, phi);\r\n    \/\/ petal_dist = petal_dist \u002b sin(theta * 13.0) * 0.01 * smoothstep(0.5, 0.0, phi);\r\n    \r\n    \/\/ let bud = sdSphere(p_rose - vec3f(0.0, 0.1, 0.0), 0.15);\r\n    \r\n    \/\/ let d_rose_final = smin(petal_dist, bud, 0.1);\r\n    \/\/ res.x = smin(res.x, d_rose_final, 0.1);\r\n    \r\n    \/\/ if (length(p - vec3f(0.0, 2.2, 0.0)) \u003c 0.5) \u007b\r\n    \/\/      res.y = MAT_ROSE;\r\n    \/\/ \u007d\r\n    \/\/ \/\/  else if (d_leaves \u003c d_stem \u002b 0.1) \u007b\r\n    \/\/ \/\/      res.y = MAT_STEM;\r\n    \/\/ \/\/ \u007d\r\n\r\n    return res; \r\n\u007d\r\n\r\nfn calc_normal(p: vec3f) -\u003e vec3f \u007b\r\n    let e = 0.002;\r\n    \/\/ We manually construct the vectors to avoid swizzling confusion\r\n    let dx = map(p \u002b vec3f(e, 0.0, 0.0)).x - map(p - vec3f(e, 0.0, 0.0)).x;\r\n    let dy = map(p \u002b vec3f(0.0, e, 0.0)).x - map(p - vec3f(0.0, e, 0.0)).x;\r\n    let dz = map(p \u002b vec3f(0.0, 0.0, e)).x - map(p - vec3f(0.0, 0.0, e)).x;\r\n    \r\n    return normalize(vec3f(dx, dy, dz));\r\n\u007d\r\n\r\nfn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32) -\u003e f32 \u007b\r\n\tvar res = 1.0;\r\n    var t = mint;\r\n    for(var i=0; i\u003c16; i\u002b\u002b) \u007b\r\n\t\tlet h = map(ro \u002b rd*t).x;\r\n        res = min( res, 8.0*h\/t );\r\n        t \u002b= clamp( h, 0.02, 0.10 );\r\n        if( h\u003c0.001 || t\u003etmax ) \u007b break; \u007d\r\n    \u007d\r\n    return clamp( res, 0.0, 1.0 );\r\n\u007d\r\n\r\n\r\n\r\n@fragment\r\n\r\nfn fs_main(@builtin(position) pos: vec4f) -\u003e @location(0) vec4f \u007b\r\n\r\n   \r\n\r\n   let resolution = uniforms.resolution;\r\n    let uv = (pos.xy * 2.0 - resolution) \/ resolution.y;\r\n    let uv_flipped = vec2f(uv.x, -uv.y);\r\n\r\n    let time = uniforms.time * 2.0 ;\r\n\r\n    let ro = vec3f(sin(time), 3.0, -1.0); \r\n    let lookAt = vec3f(0.0, 2, 0.0);\r\n    \r\n    let fwd = normalize(lookAt - ro);\r\n    let right = normalize(cross(vec3f(0.0, 1.0, 0.0), fwd));\r\n    let up = cross(fwd, right);\r\n    let rd = normalize(fwd \u002b right * uv_flipped.x \u002b up * uv_flipped.y);\r\n    \r\n    var t = 0.0;        \r\n    var hit = false;    \r\n    var mat_id = -1.0;\r\n\r\n    for(var i = 0; i \u003c 150; i\u002b\u002b) \u007b \r\n        let p = ro \u002b rd * t;\r\n        let res = map(p); \r\n        let d = res.x;\r\n        mat_id = res.y;\r\n\r\n        if (d \u003c 0.001) \u007b    \r\n            hit = true;\r\n            break;\r\n        \u007d\r\n        if (t \u003e 20.0) \u007b    \r\n            break;\r\n        \u007d\r\n        t = t \u002b d * 0.3; \r\n    \u007d\r\n\r\n    var final_color =vec3f(0.0, 0.0, 0.0);     \r\n\r\n    if (hit) \u007b\r\n        let p = ro \u002b rd * t;       \r\n        let normal = calc_normal(p); \r\n        \r\n        let light_pos = vec3f(2.0, 5.0, -3.0);\r\n        let light_dir = normalize(light_pos - p);\r\n        \r\n        let diff = clamp(dot(normal, light_dir), 0.1, 1.0);\r\n        let shadow = softshadow(p \u002b normal * 0.01, light_dir, 0.02, length(light_pos - p));\r\n\r\n        var albedo = vec3f(0.0);\r\n        \r\n        if (abs(mat_id - MAT_GROUND) \u003c 0.1) \u007b\r\n            albedo = vec3f(0.2, 0.2, 0.2);  \r\n        \u007d else if (abs(mat_id - MAT_STEM) \u003c 0.1) \u007b\r\n            albedo = vec3f(0.05, 0.15, 0.02);\r\n        \u007d else if (abs(mat_id - MAT_ROSE) \u003c 0.1) \u007b\r\n            let height_factor = smoothstep(2.0, 2.4, p.y);\r\n            albedo = mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);\r\n        \u007d\r\n        \r\n\r\n        \r\n        let ambient = vec3f(0.1) * albedo;\r\n        let diffuse = albedo * diff * vec3f(1.0, 0.95, 0.8);\/\/ * shadow; \r\n        \r\n        final_color = ambient \u002b diffuse;\r\n        final_color = mix(final_color, vec3f(0.0, 0.0, 0.0), 1.0 - exp(-0.01 * t * t));\r\n    \u007d\r\n\r\n  \/\/  final_color = pow(final_color, vec3f(1.0\/2.2));\r\n\r\n    return vec4f(final_color, 1.0);\r\n\r\n\u007d`;
+        const shaderCode = `struct Uniforms \u007b\r\n  resolution: vec2f,\r\n  time: f32,\r\n  padding: f32, \/\/ Padding to align the next vec2 to 16 bytes\r\n  camera: vec2f, \/\/ x = yaw, y = pitch\r\n\u007d\r\n\r\n\r\n\r\n@group(0) @binding(0) var\u003cuniform\u003e uniforms: Uniforms;\r\n\r\n\/\/ Constants for materials\r\nconst MAT_GROUND = 0.0;\r\nconst MAT_STEM = 1.0;\r\nconst MAT_ROSE = 2.0;\r\n\r\n@vertex\r\nfn vs_main(@builtin(vertex_index) in_vertex_index: u32) -\u003e @builtin(position) vec4f \u007b\r\n  var pos = array\u003cvec2f, 3\u003e(\r\n    vec2f(-1.0, -1.0),\r\n    vec2f(3.0, -1.0),\r\n    vec2f(-1.0, 3.0)\r\n  );\r\n  return vec4f(pos[in_vertex_index], 0.0, 1.0);\r\n\u007d\r\n\r\nfn sdBox(p: vec3f, b: vec3f) -\u003e f32 \u007b\r\n    let d = abs(p) - b;\r\n    return length(max(d, vec3f(0.0))) \u002b min(max(d.x, max(d.y, d.z)), 0.0);\r\n\u007d\r\n\r\n\/\/ --- SDF Primitive Helpers ---\r\nfn opRotateY(p: vec3f, angle: f32) -\u003e vec3f \u007b\r\n    let c = cos(angle);\r\n    let s = sin(angle);\r\n    return vec3f(c * p.x - s * p.z, p.y, s * p.x \u002b c * p.z);\r\n\u007d\r\n\r\n\/\/ Rotates around the X axis (Pitch - tilting forward\/back)\r\nfn opRotateX(p: vec3f, angle: f32) -\u003e vec3f \u007b\r\n    let c = cos(angle);\r\n    let s = sin(angle);\r\n    return vec3f(p.x, c * p.y - s * p.z, s * p.y \u002b c * p.z);\r\n\u007d\r\n\r\n\r\nfn rot2D(p: vec2f, angle: f32) -\u003e vec2f \u007b\r\n    let s = sin(angle);\r\n    let c = cos(angle);\r\n    return vec2f(c * p.x - s * p.y, s * p.x \u002b c * p.y);\r\n\u007d\r\n\r\nfn sdSphere(p: vec3f, s: f32) -\u003e f32 \u007b\r\n  return length(p) - s;\r\n\u007d\r\n\r\nfn sdCappedCylinder(p: vec3f, h: f32, r: f32) -\u003e f32 \u007b\r\n  let d = abs(vec2f(length(p.xz),p.y)) - vec2f(r,h);\r\n  \/\/ FIXED: max(d, vec2f(0.0)) instead of max(d, 0.0)\r\n  return min(max(d.x,d.y),0.0) \u002b length(max(d, vec2f(0.0)));\r\n\u007d\r\n\r\nfn sdEllipsoid(p: vec3f, r: vec3f) -\u003e f32 \u007b\r\n    let k0 = length(p\/r);\r\n    let k1 = length(p\/(r*r));\r\n    return k0*(k0-1.0)\/k1;\r\n\u007d\r\n\r\n\/\/ --- SDF Combination Helpers ---\r\n\r\nfn smin(a: f32, b: f32, k: f32) -\u003e f32 \u007b\r\n    let h = clamp(0.5 \u002b 0.5 * (b - a) \/ k, 0.0, 1.0);\r\n    return mix(b, a, h) - k * h * (1.0 - h);\r\n\u007d\r\n\r\nfn opCheapBend(p: vec3f) -\u003e vec3f \u007b\r\n    let k = 10.0; \/\/ The amount to bend\r\n    \r\n    let c = cos(k * p.x);\r\n    let s = sin(k * p.x);\r\n    \r\n    \/\/ Construct 2x2 Rotation Matrix\r\n    \/\/ Note: WGSL matrices are column-major, just like GLSL\r\n    let m = mat2x2f(c, -s, s, c);\r\n    \r\n    \/\/ Apply rotation to X and Y, leave Z alone\r\n    \/\/ The matrix multiplication (m * p.xy) works natively\r\n    return vec3f(m * p.xy, p.z);\r\n\u007d\r\n\r\nfn sdVerticalVesicaSegment(p: vec3f, h_in: f32, w_in: f32) -\u003e f32 \u007b\r\n    \/\/ 1. Create mutable local copies of the inputs\r\n    var h = h_in * 0.5;\r\n    var w = w_in * 0.5;\r\n\r\n    \/\/ 2. Shape constants\r\n    let d = 0.5 * (h * h - w * w) \/ w;\r\n    \r\n    \/\/ 3. Project to 2D\r\n    let q = vec2f(length(p.xz), abs(p.y - h));\r\n    \r\n    \/\/ 4. Feature selection\r\n    \/\/ GLSL: (condition) ? true : false\r\n    \/\/ WGSL: select(false, true, condition) \u003c-- IMPORTANT!\r\n    let condition = (h * q.x \u003c d * (q.y - h));\r\n    \r\n    let t = select(\r\n        vec3f(-d, 0.0, d \u002b w), \/\/ The \u0022False\u0022 case\r\n        vec3f(0.0, h, 0.0),    \/\/ The \u0022True\u0022 case\r\n        condition\r\n    );\r\n    \r\n    \/\/ 5. Distance\r\n    return length(q - t.xy) - t.z;\r\n\u007d\r\n\r\n\r\n\r\n\r\nfn dot2(v: vec3f) -\u003e f32 \u007b\r\n    return dot(v, v);\r\n\u007d\r\n\r\nfn udTriangle(p: vec3f, a: vec3f, b: vec3f, c: vec3f) -\u003e f32 \u007b\r\n    let ba = b - a; \r\n    let pa = p - a;\r\n    let cb = c - b; \r\n    let pb = p - b;\r\n    let ac = a - c; \r\n    let pc = p - c;\r\n    \r\n    let nor = cross(ba, ac);\r\n\r\n    \/\/ Calculate the 3 Barycentric\/projection conditions\r\n    let cond_val = sign(dot(cross(ba, nor), pa)) \u002b\r\n                   sign(dot(cross(cb, nor), pb)) \u002b\r\n                   sign(dot(cross(ac, nor), pc));\r\n\r\n    \/\/ EDGE DISTANCE MATH\r\n    \/\/ Calculates distance to the 3 distinct line segments\r\n    let d_edge_a = dot2(ba * clamp(dot(ba, pa) \/ dot2(ba), 0.0, 1.0) - pa);\r\n    let d_edge_b = dot2(cb * clamp(dot(cb, pb) \/ dot2(cb), 0.0, 1.0) - pb);\r\n    let d_edge_c = dot2(ac * clamp(dot(ac, pc) \/ dot2(ac), 0.0, 1.0) - pc);\r\n    \r\n    let dist_edge = min(min(d_edge_a, d_edge_b), d_edge_c);\r\n\r\n    \/\/ FACE DISTANCE MATH\r\n    \/\/ Calculates distance to the plane\r\n    let dist_face = dot(nor, pa) * dot(nor, pa) \/ dot2(nor);\r\n\r\n    \/\/ SELECT\r\n    \/\/ If cond_val \u003c 2.0, we are \u0022outside\u0022 the projection, use edge distance.\r\n    \/\/ Otherwise, use face distance.\r\n    let result_sq = select(\r\n        dist_face,   \/\/ False case (cond \u003e= 2.0) -\u003e Face\r\n        dist_edge,   \/\/ True case  (cond \u003c 2.0)  -\u003e Edge\r\n        cond_val \u003c 2.0\r\n    );\r\n\r\n    return sqrt(result_sq);\r\n\u007d\r\n\r\nfn opPolarRep(p: vec3f, repetitions: f32, offset_radius: f32) -\u003e vec3f \u007b\r\n    let PI = 3.14159265;\r\n    \r\n    let angle_step = 2.0 * PI \/ repetitions;\r\n\r\n    let current_angle = atan2(p.z, p.x);\r\n    let dist = length(p.xz);\r\n\r\n  \r\n    let sector = round(current_angle \/ angle_step);\r\n\r\n \r\n    let new_angle = current_angle - sector * angle_step;\r\n\r\n   \r\n    let q_xz = vec2f(\r\n        cos(new_angle) * dist,\r\n        sin(new_angle) * dist\r\n    );\r\n    \r\n   \r\n    return vec3f(q_xz.x - offset_radius, p.y, q_xz.y);\r\n\u007d\r\nfn sdVesica(p: vec2f, r: f32, d: f32) -\u003e f32 \u007b\r\n    let p_abs = abs(p);\r\n    let b = sqrt(r * r - d * d);\r\n    \r\n    let condition = (p_abs.y - b) * d \u003e p_abs.x * b;\r\n    \r\n    let d1 = length(p_abs - vec2f(0.0, b));\r\n    let d2 = length(p_abs - vec2f(-d, 0.0)) - r;\r\n    \r\n    return select(d2, d1, condition);\r\n\u007d\r\nfn smax(a: f32, b: f32, k: f32) -\u003e f32 \u007b\r\n    let h = clamp(0.5 \u002b 0.5 * (a - b) \/ k, 0.0, 1.0);\r\n    return mix(a, b, h) \u002b k * h * (1.0 - h);\r\n\u007d\r\nfn sdPetal(p: vec3f, s: f32) -\u003e f32 \u007b\r\n    var pos = p;\r\n\r\n    \/\/ Normalize \u0027s\u0027 for blending\r\n    \/\/ s is now between 0.2 and 0.35\r\n    let t = smoothstep(0.2, 0.35, s);\r\n\r\n    let width_factor = mix(0.3, 1.1, t);\r\n\r\n    \/\/ --- BENDING ---\r\n    \r\n    \/\/ 1. SIDE CUPPING (Spoon shape)\r\n    \/\/ Stronger on inside (2.0), weaker on outside (1.0)\r\n    let cup_strength = mix(0.5, 0.3, t);\r\n    let cup_strength_y = mix(0.1, 0.6, t);\r\n    pos.z \u002b= pos.x * pos.x * cup_strength;\r\n    pos.z \u002b= pos.y * pos.y * cup_strength_y;\r\n\r\n\r\n   \r\n\r\n  let tip_height = max(pos.y - 0.3, 0.0);\r\n    \r\n    \/\/ We calculate a curve strength based on height\r\n    \/\/ We use a square curve (pow 2.0) for a smooth bend\r\n    let curl_amount = pow(tip_height, 2.0) * 3.0 * t; \/\/ Active mainly on outer petals\r\n    \r\n    \/\/ A. Curl BACK (Negative Z)\r\n    pos.z -= curl_amount;\r\n    \r\n   \r\n  \/\/  let tip_height = max(pos.y - 0.4, 0.0);\r\n    \r\n    \/\/ We reduced the multiplier from 15.0 to 5.0 to stop the \u0022Huge\u0022 explosion\r\n  \/\/  let recurve_amount =   \/\/pow(tip_height, 2.5) * 3.0;\/\/ * t;\r\n   \/\/ pos.z -= recurve_amount;\r\n\r\n  \r\n    \/\/ --- SHAPE ---\r\n    let taper_strength = mix(0.3, 0.5, t);\r\n    let taper = 1.0 \u002b taper_strength * pos.y;\r\n    \r\n    \/\/ Clamp taper to be safe\r\n    let p_x = pos.x \/ (clamp(taper, 0.1, 2.0)* width_factor);\/\/ \r\n    \r\n    \/\/ Base Circle\r\n    let d_2d = length(vec2f(p_x, pos.y)) - 0.8; \r\n\r\n    \/\/ Cut Top\r\n    let d_flat_top = smax(d_2d, pos.y - 0.35, 0.05);\r\n\r\n    \/\/ Thickness\r\n    \/\/ Scale distance by 0.6 to avoid artifacts\r\n    let d_final_2d = d_flat_top * 0.6; \r\n\r\n    let thickness = 0.01; \r\n    let d_z = abs(pos.z) - thickness;\r\n\r\n    let w = vec2f(d_2d, d_z);\r\n    return min(max(w.x, w.y), 0.0) \u002b length(max(w, vec2f(0.0)));\r\n\u007d\r\n\r\n\r\n\r\nfn sdRose(p: vec3f) -\u003e f32 \u007b\r\n\r\n\r\n    let d_sphere = length(p - vec3f(0.0, 0.1, 0.0)) - 0.5;\r\n\r\n    if (d_sphere \u003e 0.05) \u007b\r\n        return d_sphere;\r\n    \u007d\r\n\r\n    var d_min = 100.0;\r\n    \r\n    let petal_count =11.0; \r\n    let golden_angle = 2.39996; \r\n    \r\n    for (var i = 1.0; i \u003c petal_count; i \u002b= 1.0) \u007b\r\n        \r\n        let r = 0.07 * sqrt(i); \/\/ Kept radius compact\r\n        let theta = i * golden_angle;\r\n        \r\n        \/\/ Lower outer petals\r\n        let petal_center = vec3f(r * cos(theta), -r * 0.2, r * sin(theta));\r\n\r\n        \/\/ --- FIX 1: REDUCED SCALE RANGE ---\r\n        \/\/ Was: 0.2 \u002b ... * 0.3 (Result 0.5)\r\n        \/\/ Now: 0.2 \u002b ... * 0.15 (Result 0.35)\r\n        \/\/ This prevents the outer petals from becoming giant monsters.\r\n        let scale = 0.1 \u002b (i \/ petal_count) * 0.25;\r\n\r\n        var q = p - petal_center;\r\n        \r\n        q = opRotateY(q, -theta \u002b 1.57);\r\n        \r\n        \/\/ --- FIX 2: TILT ADJUSTMENT ---\r\n        \/\/ Inner: -0.2 (Tucked in)\r\n        \/\/ Outer: 0.6 (Opened up, but not falling over)\r\n        let tilt = -0.2 \u002b (i \/ petal_count) * 0.8; \r\n     \/\/   q = opRotateX(q, -tilt);\r\n        \r\n        \/\/ Scale the coordinate space\r\n        q = q \/ 0.2;\r\n\r\n        \/\/ Calculate distance and multiply back\r\n        let d = sdPetal(q, scale) * scale;\r\n        \r\n        d_min = min(d_min, d);\r\n    \u007d\r\n    \r\n    return d_min;\r\n\u007d\r\n\r\n\r\n\r\nfn flower(p: vec3f, location: vec3f) -\u003e f32 \u007b\r\n    let center = vec3f(0.0, 0.0, 0.0);\r\n    let pos = p - (center \u002b location);\r\n\r\n    var q = opPolarRep(pos, 5.0, 0.1);\r\n\r\n    let curve = q.x * q.x*2 ; \r\n    \r\n   \r\n    let wave = sin(q.x * 50.0) * 0.005 \u002b sin(q.z * 50.0) * 0.005 \u002bsin(q.x * 80.0) * 0.003 \u002b sin(q.z * 80.0) * 0.003 ;\r\n    \r\n\r\n    q.y \u002b= curve \u002b wave; \r\n\r\n    \r\n    let size = 0.2;\r\n    let v1 = vec3f(0.0, 0.0, -1.0 * size * 0.5);\r\n    let v2 = vec3f(0.0, 0.0,  1.0 * size * 0.5); \r\n    let v3 = vec3f(2.0 * size, 0.0, 0.0);       \r\n\r\n   \r\n    let d_flat = udTriangle(q, v1, v2, v3);\r\n    let d_sepals = d_flat - 0.01; \r\n\r\n   \r\n\r\n    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.4, 0.20);\r\n\r\n\r\n\r\n   \/\/ let d = sdPetal(pos - vec3f(0.0, 0.0, 0.0));\r\n\r\n \r\n   \r\n   \r\n    \/\/ Combine with floor\r\n   let flower =  sdRose(pos); \/\/min(d, min(d_sepals, d_bud));\r\n\r\n   return flower;\r\n\u007d\r\n\r\n\/\/ --- The Main Scene Description ---\r\n\r\nfn map(p_in: vec3f) -\u003e vec2f \u007b\r\n    var p = p_in;\r\n    \r\n    let time = uniforms.time ;\r\n\r\n    \/\/ 1. Ground\r\n     var res = vec2f(p.y \u002b 0.5, MAT_GROUND);\r\n\r\n    let flower_pos = vec3f(0.0, 2.0, 0.0);\r\n\r\n    let d_t =  flower(p, flower_pos);\r\n\r\n    if (d_t \u003c res.x) \u007b \r\n        res = vec2f(d_t, MAT_STEM); \r\n    \u007d\r\n\r\n    \/\/ \/\/ 2. Stem\r\n    var p_stem = p;\r\n    p_stem.x = p_stem.x \u002b sin(p_stem.y * 2.0) * 0.1;\r\n    p_stem.z = p_stem.z \u002b cos(p_stem.y * 3.0) * 0.05;\r\n    \r\n    let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) \u002b 0.01;\r\n    let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);\r\n    \r\n    \/\/ if (d_stem \u003c res.x) \u007b \r\n    \/\/     res = vec2f(d_stem, MAT_STEM); \r\n    \/\/ \u007d\r\n\r\n    \/\/ \/\/ 3. Leaves\r\n    \/\/ \/\/ Leaf 1\r\n    \/\/ var p_leaf1 = p - vec3f(0.1, 0.3, 0.1); \r\n    \r\n    \/\/ \/\/ Manual rotation YZ\r\n    \/\/ let rot_leaf1_yz = rot2D(vec2f(p_leaf1.y, p_leaf1.z), 0.8);\r\n    \/\/ p_leaf1.y = rot_leaf1_yz.x;\r\n    \/\/ p_leaf1.z = rot_leaf1_yz.y;\r\n    \r\n    \/\/ \/\/ Manual rotation XZ\r\n    \/\/ let rot_leaf1_xz = rot2D(vec2f(p_leaf1.x, p_leaf1.z), 0.5);\r\n    \/\/ p_leaf1.x = rot_leaf1_xz.x;\r\n    \/\/ p_leaf1.z = rot_leaf1_xz.y;\r\n\r\n    \/\/ let d_leaf1 = sdEllipsoid(p_leaf1, vec3f(0.2, 0.02, 0.1));\r\n\r\n    \/\/ \/\/ Leaf 2\r\n    \/\/ var p_leaf2 = p - vec3f(-0.1, 0.8, -0.1);\r\n    \r\n    \/\/ \/\/ Manual rotation YZ\r\n    \/\/ let rot_leaf2_yz = rot2D(vec2f(p_leaf2.y, p_leaf2.z), 1.0);\r\n    \/\/ p_leaf2.y = rot_leaf2_yz.x;\r\n    \/\/ p_leaf2.z = rot_leaf2_yz.y;\r\n\r\n    \/\/ \/\/ Manual rotation XZ\r\n    \/\/ let rot_leaf2_xz = rot2D(vec2f(p_leaf2.x, p_leaf2.z), -2.0);\r\n    \/\/ p_leaf2.x = rot_leaf2_xz.x;\r\n    \/\/ p_leaf2.z = rot_leaf2_xz.y;\r\n    \r\n    \/\/ let d_leaf2 = sdEllipsoid(p_leaf2, vec3f(0.18, 0.02, 0.09));\r\n    \r\n    \/\/ let d_leaves = min(d_leaf1, d_leaf2);\r\n    \/\/ res.x = smin(res.x, d_leaves, 0.05);\r\n\r\n    \/\/ \/\/ 4. Rose Head\r\n    \/\/ var p_rose = p - vec3f(0.0, 2.2, 0.0);\r\n    \/\/ let r_rose = length(p_rose);\r\n    \/\/ let safe_r = max(r_rose, 0.001);\r\n    \r\n    \/\/ let theta = atan2(p_rose.z, p_rose.x); \r\n    \/\/ let phi = acos(clamp(p_rose.y \/ safe_r, -1.0, 1.0)); \r\n\r\n    \/\/ var petal_dist = r_rose - 0.35;\r\n    \/\/ petal_dist = petal_dist \u002b sin(theta * 5.0 \u002b phi * 3.0) * 0.03 * smoothstep(0.0, 1.0, phi);\r\n    \/\/ petal_dist = petal_dist \u002b sin(theta * 13.0) * 0.01 * smoothstep(0.5, 0.0, phi);\r\n    \r\n    \/\/ let bud = sdSphere(p_rose - vec3f(0.0, 0.1, 0.0), 0.15);\r\n    \r\n    \/\/ let d_rose_final = smin(petal_dist, bud, 0.1);\r\n    \/\/ res.x = smin(res.x, d_rose_final, 0.1);\r\n    \r\n    \/\/ if (length(p - vec3f(0.0, 2.2, 0.0)) \u003c 0.5) \u007b\r\n    \/\/      res.y = MAT_ROSE;\r\n    \/\/ \u007d\r\n    \/\/ \/\/  else if (d_leaves \u003c d_stem \u002b 0.1) \u007b\r\n    \/\/ \/\/      res.y = MAT_STEM;\r\n    \/\/ \/\/ \u007d\r\n\r\n    return res; \r\n\u007d\r\n\r\nfn calc_normal(p: vec3f) -\u003e vec3f \u007b\r\n    let e = 0.002;\r\n    \/\/ We manually construct the vectors to avoid swizzling confusion\r\n    let dx = map(p \u002b vec3f(e, 0.0, 0.0)).x - map(p - vec3f(e, 0.0, 0.0)).x;\r\n    let dy = map(p \u002b vec3f(0.0, e, 0.0)).x - map(p - vec3f(0.0, e, 0.0)).x;\r\n    let dz = map(p \u002b vec3f(0.0, 0.0, e)).x - map(p - vec3f(0.0, 0.0, e)).x;\r\n    \r\n    return normalize(vec3f(dx, dy, dz));\r\n\u007d\r\n\r\nfn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32) -\u003e f32 \u007b\r\n\tvar res = 1.0;\r\n    var t = mint;\r\n    for(var i=0; i\u003c16; i\u002b\u002b) \u007b\r\n\t\tlet h = map(ro \u002b rd*t).x;\r\n        res = min( res, 8.0*h\/t );\r\n        t \u002b= clamp( h, 0.02, 0.10 );\r\n        if( h\u003c0.001 || t\u003etmax ) \u007b break; \u007d\r\n    \u007d\r\n    return clamp( res, 0.0, 1.0 );\r\n\u007d\r\n\r\n\r\n\r\n@fragment\r\n\r\nfn fs_main(@builtin(position) pos: vec4f) -\u003e @location(0) vec4f \u007b\r\n\r\n   \r\n\r\n   let resolution = uniforms.resolution;\r\n    let uv = (pos.xy * 2.0 - resolution) \/ resolution.y;\r\n    let uv_flipped = vec2f(uv.x, -uv.y);\r\n\r\n    let time = uniforms.time * 2.0 ;\r\n\r\n    let yaw = uniforms.camera.x;\r\n    let pitch = uniforms.camera.y;\r\nlet radius = 1.0;\r\n   let ro = vec3f(\r\n        radius * cos(pitch) * sin(yaw),\r\n        radius * sin(pitch) \u002b 2.0, \/\/ \u002b2.0 to keep height relative to lookAt\r\n        radius * cos(pitch) * cos(yaw)\r\n    ) \u002b vec3f(0.0, 0.0, 0.0);\r\n\r\n    let lookAt = vec3f(0.0, 2, 0.0);\r\n    \r\n    let fwd = normalize(lookAt - ro);\r\n    let right = normalize(cross(vec3f(0.0, 1.0, 0.0), fwd));\r\n    let up = cross(fwd, right);\r\n    let rd = normalize(fwd \u002b right * uv_flipped.x \u002b up * uv_flipped.y);\r\n    \r\n    var t = 0.0;        \r\n    var hit = false;    \r\n    var mat_id = -1.0;\r\n\r\n    for(var i = 0; i \u003c 150; i\u002b\u002b) \u007b \r\n        let p = ro \u002b rd * t;\r\n        let res = map(p); \r\n        let d = res.x;\r\n        mat_id = res.y;\r\n\r\n        if (d \u003c 0.001) \u007b    \r\n            hit = true;\r\n            break;\r\n        \u007d\r\n        if (t \u003e 20.0) \u007b    \r\n            break;\r\n        \u007d\r\n        t = t \u002b d * 0.3; \r\n    \u007d\r\n\r\n    var final_color =vec3f(0.0, 0.0, 0.0);     \r\n\r\n    if (hit) \u007b\r\n        let p = ro \u002b rd * t;       \r\n        let normal = calc_normal(p); \r\n        \r\n        let light_pos = vec3f(2.0, 5.0, -3.0);\r\n        let light_dir = normalize(light_pos - p);\r\n        \r\n        let diff = clamp(dot(normal, light_dir), 0.1, 1.0);\r\n        let shadow = softshadow(p \u002b normal * 0.01, light_dir, 0.02, length(light_pos - p));\r\n\r\n        var albedo = vec3f(0.0);\r\n        \r\n        if (abs(mat_id - MAT_GROUND) \u003c 0.1) \u007b\r\n            albedo = vec3f(0.2, 0.2, 0.2);  \r\n        \u007d else if (abs(mat_id - MAT_STEM) \u003c 0.1) \u007b\r\n            albedo = vec3f(0.05, 0.15, 0.02);\r\n        \u007d else if (abs(mat_id - MAT_ROSE) \u003c 0.1) \u007b\r\n            let height_factor = smoothstep(2.0, 2.4, p.y);\r\n            albedo = mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);\r\n        \u007d\r\n        \r\n\r\n        \r\n        let ambient = vec3f(0.1) * albedo;\r\n        let diffuse = albedo * diff * vec3f(1.0, 0.95, 0.8);\/\/ * shadow; \r\n        \r\n        final_color = ambient \u002b diffuse;\r\n        final_color = mix(final_color, vec3f(0.0, 0.0, 0.0), 1.0 - exp(-0.01 * t * t));\r\n    \u007d\r\n\r\n  \/\/  final_color = pow(final_color, vec3f(1.0\/2.2));\r\n\r\n    return vec4f(final_color, 1.0);\r\n\r\n\u007d`;
     
 
     
@@ -1048,79 +1078,116 @@
     });
 
     
-    const uniformBufferSize = 16; 
-    const uniformBuffer = device.createBuffer({
-        size: uniformBufferSize,
-        usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
-    });
+  
+  
+  
+  const uniformBufferSize = 32; 
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
 
-    const uniformValues = new Float32Array(4); 
+  const uniformValues = new Float32Array(8); 
 
-    const bindGroup = device.createBindGroup({
-        layout: pipeline.getBindGroupLayout(0),
-        entries: [
-            { binding: 0, resource: { buffer: uniformBuffer } },
-        ],
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+    ],
+  });
+
+  
+  let isDragging = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  
+  
+  
+  
+  let cameraYaw = 0.5; 
+  let cameraPitch = 0.5; 
+
+  
+  window.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+  window.addEventListener("mouseup", () => {
+      isDragging = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+
+      const sensitivity = 0.005;
+      const deltaX = e.clientX - lastMouseX;
+      const deltaY = e.clientY - lastMouseY;
+
+      
+      cameraYaw -= deltaX * sensitivity;
+      cameraPitch += deltaY * sensitivity;
+
+      
+      
+      cameraPitch = Math.max(-1.5, Math.min(1.5, cameraPitch));
+
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+
+  
+  const resize = () => {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    canvas.width = w;
+    canvas.height = h;
+    context.configure({
+      device: device,
+      format: navigator.gpu.getPreferredCanvasFormat(),
+      alphaMode: "premultiplied",
     });
+    uniformValues[0] = w;
+    uniformValues[1] = h;
+  };
+  window.addEventListener("resize", resize);
+  resize(); 
+
+  function frame() {
+    const time = performance.now() / 1000;
+    
+    
+    uniformValues[2] = time;       
+    uniformValues[4] = cameraYaw;  
+    uniformValues[5] = cameraPitch;
 
     
-    const resize = () => {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
+    device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
 
-        canvas.width = w;
-        canvas.height = h;
-
-        context.configure({
-            device: device,
-            format: navigator.gpu.getPreferredCanvasFormat(),
-            alphaMode: "premultiplied",
-        });
-
-        
-        uniformValues[0] = w;
-        uniformValues[1] = h;
-        
+    const commandEncoder = device.createCommandEncoder();
+    const textureView = context.getCurrentTexture().createView();
+    
+    const renderPassDescriptor = {
+      colorAttachments: [{
+        view: textureView,
+        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+        loadOp: "clear",
+        storeOp: "store",
+      }],
     };
-
-    window.addEventListener("resize", resize);
-    resize(); 
-
-    function frame() {
-        
-        
-        
-        const time = performance.now() / 1000;
-        
-        
-        uniformValues[2] = time; 
-
-        
-        device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
-
-        
-        const commandEncoder = device.createCommandEncoder();
-        const textureView = context.getCurrentTexture().createView();
-        
-        const renderPassDescriptor = {
-            colorAttachments: [{
-                view: textureView,
-                clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
-                loadOp: "clear",
-                storeOp: "store",
-            }],
-        };
-        
-        const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
-        passEncoder.setPipeline(pipeline);
-        passEncoder.setBindGroup(0, bindGroup); 
-        passEncoder.draw(3);
-        passEncoder.end();
-        
-        device.queue.submit([commandEncoder.finish()]);
-        requestAnimationFrame(frame);
-    }
-    frame();
+    
+    const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup); 
+    passEncoder.draw(3);
+    passEncoder.end();
+    
+    device.queue.submit([commandEncoder.finish()]);
+    requestAnimationFrame(frame);
+  }
+  frame();
   }
   initWebGPU();
 </script>
