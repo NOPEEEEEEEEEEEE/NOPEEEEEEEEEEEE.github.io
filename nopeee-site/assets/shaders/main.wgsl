@@ -213,8 +213,8 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     // Stronger on inside (2.0), weaker on outside (1.0)
     let cup_strength = mix(0.5, 0.3, t);
     let cup_strength_y = mix(0.1, 0.6, t);
-    pos.z += pos.x * pos.x * cup_strength;
-    pos.z += pos.y * pos.y * cup_strength_y;
+  //  pos.z += pos.x * pos.x * cup_strength;
+   // pos.z += pos.y * pos.y * cup_strength_y;
 
 
    
@@ -226,11 +226,11 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     let curl_amount = pow(tip_height, 2.0) * 3.0 * t; // Active mainly on outer petals
     
     // A. Curl BACK (Negative Z)
-    pos.z -= curl_amount;
+  //  pos.z -= curl_amount;
     
-   
+   //pos.y += curl_amount * 1.5;
   //  let tip_height = max(pos.y - 0.4, 0.0);
-    
+     
     // We reduced the multiplier from 15.0 to 5.0 to stop the "Huge" explosion
   //  let recurve_amount =   //pow(tip_height, 2.5) * 3.0;// * t;
    // pos.z -= recurve_amount;
@@ -240,8 +240,11 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     let taper_strength = mix(0.3, 0.5, t);
     let taper = 1.0 + taper_strength * pos.y;
     
+
+let pointiness = 1+ max(pos.y - 0.6, 0.0) * 2;
+
     // Clamp taper to be safe
-    let p_x = pos.x / (clamp(taper, 0.1, 2.0)* width_factor);// 
+    let p_x =(pos.x ) / (clamp(taper, 0.1, 2.0)* width_factor);// 
     
     // Base Circle
     let d_2d = length(vec2f(p_x, pos.y)) - 0.8; 
@@ -258,6 +261,9 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
 
     let w = vec2f(d_2d, d_z);
     return min(max(w.x, w.y), 0.0) + length(max(w, vec2f(0.0)));
+
+
+ 
 }
 
 
@@ -344,7 +350,7 @@ fn flower(p: vec3f, location: vec3f) -> f32 {
 
 
 
-   // let d = sdPetal(pos - vec3f(0.0, 0.0, 0.0));
+  //  let d = sdPetal(pos ,1);
 
  
    

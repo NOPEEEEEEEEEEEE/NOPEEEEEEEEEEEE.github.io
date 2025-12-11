@@ -34,7 +34,7 @@ Galactic Goo is a plaform puzzle game made in UE5 in my first year. This was my 
 
  ---
 
-{{< article link="/Rabbithole/galacticgoowork/" showSummary=true compactSummary=true >}}
+{{< article link="/rabbithole/galacticgoowork/" showSummary=true compactSummary=true >}}
 
 
 
