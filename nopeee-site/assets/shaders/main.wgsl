@@ -198,6 +198,10 @@ fn smax(a: f32, b: f32, k: f32) -> f32 {
     let h = clamp(0.5 + 0.5 * (a - b) / k, 0.0, 1.0);
     return mix(a, b, h) + k * h * (1.0 - h);
 }
+
+
+
+
 fn sdPetal(p: vec3f, s: f32) -> f32 {
     var pos = p;
 
@@ -205,28 +209,28 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     // s is now between 0.2 and 0.35
     let t = smoothstep(0.2, 0.35, s);
 
-    let width_factor = mix(0.3, 1.1, t);
+    let width_factor = mix(0.3, 1.0, t);
 
     // --- BENDING ---
     
     // 1. SIDE CUPPING (Spoon shape)
     // Stronger on inside (2.0), weaker on outside (1.0)
-    let cup_strength = mix(0.5, 0.3, t);
-    let cup_strength_y = mix(0.1, 0.6, t);
-  //  pos.z += pos.x * pos.x * cup_strength;
-   // pos.z += pos.y * pos.y * cup_strength_y;
+    let cup_strength = mix(1.9, 0.5, t);
+    let cup_strength_y = mix(0.1, 0.5, t);
+    pos.z += pos.x * pos.x * cup_strength;
+    pos.z += pos.y * pos.y * cup_strength_y;
 
 
-   
+    let curl_factor = mix(0.7, 1.0, t);
 
   let tip_height = max(pos.y - 0.3, 0.0);
-    
+    let tip_side = max(abs(pos.x)/curl_factor - 0.1, 0.0);
     // We calculate a curve strength based on height
     // We use a square curve (pow 2.0) for a smooth bend
-    let curl_amount = pow(tip_height, 2.0) * 3.0 * t; // Active mainly on outer petals
+    let curl_amount = pow(tip_height, 2.0) * 2.0 * t +  pow(tip_side, 2.0)*0.8; // Active mainly on outer petals
     
     // A. Curl BACK (Negative Z)
-  //  pos.z -= curl_amount;
+    pos.z -= curl_amount;
     
    //pos.y += curl_amount * 1.5;
   //  let tip_height = max(pos.y - 0.4, 0.0);
@@ -235,7 +239,27 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
   //  let recurve_amount =   //pow(tip_height, 2.5) * 3.0;// * t;
    // pos.z -= recurve_amount;
 
+let bulge_domain = vec2f(pos.x, pos.y * 0.7); 
+    let dist_sq = dot(bulge_domain, bulge_domain);
+    
+    // 2. The Gaussian Formula
+    // exp(-k * dist_sq)
+    // k = 10.0 (Controls sharpness. Higher = smaller button)
+    let gaussian = exp(-4.0 * dist_sq);
+    
+    // 3. Apply bulge
+    // We blend it with 't' so outer petals bulge more than inner ones?
+    // Or just fixed amount: 0.05
+    let bulge_strength = 0.25; 
+    
+    // Subtract from Z to push it "Out" (towards camera/negative Z)
+    pos.z -= gaussian * bulge_strength;
   
+  //  let z_taper_strength = 0.8; 
+   // let z_scale = clamp(1.0 + pos.z * z_taper_strength, 0.1, 2.0);
+
+
+
     // --- SHAPE ---
     let taper_strength = mix(0.3, 0.5, t);
     let taper = 1.0 + taper_strength * pos.y;
@@ -244,7 +268,7 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
 let pointiness = 1+ max(pos.y - 0.6, 0.0) * 2;
 
     // Clamp taper to be safe
-    let p_x =(pos.x ) / (clamp(taper, 0.1, 2.0)* width_factor);// 
+    let p_x =(pos.x) / (clamp(taper, 0.1, 2.0)* width_factor);// 
     
     // Base Circle
     let d_2d = length(vec2f(p_x, pos.y)) - 0.8; 
@@ -266,7 +290,10 @@ let pointiness = 1+ max(pos.y - 0.6, 0.0) * 2;
  
 }
 
-
+struct distancePriority {
+    distance: f32,
+    id: f32,
+};
 
 fn sdRose(p: vec3f) -> f32 {
 
@@ -278,15 +305,16 @@ fn sdRose(p: vec3f) -> f32 {
     }
 
     var d_min = 100.0;
-    
-    let petal_count =11.0; 
+   // var d_min_2d = distancePriority(100.0,0.0);
+
+    let petal_count =25.0; 
     let golden_angle = 2.39996; 
-    
+      let time = uniforms.time * 2.0 ;
     for (var i = 1.0; i < petal_count; i += 1.0) {
         
-        let r = 0.07 * sqrt(i); // Kept radius compact
+        let r = (0.03) * sqrt(i); // Kept radius compact+sin(time)*0.01
         let theta = i * golden_angle;
-        
+         
         // Lower outer petals
         let petal_center = vec3f(r * cos(theta), -r * 0.2, r * sin(theta));
 
@@ -303,8 +331,8 @@ fn sdRose(p: vec3f) -> f32 {
         // --- FIX 2: TILT ADJUSTMENT ---
         // Inner: -0.2 (Tucked in)
         // Outer: 0.6 (Opened up, but not falling over)
-        let tilt = -0.2 + (i / petal_count) * 0.8; 
-     //   q = opRotateX(q, -tilt);
+        let tilt = -0.2 + (i / petal_count) * (1.0+sin(time)*0.8); 
+        q = opRotateX(q, -tilt);
         
         // Scale the coordinate space
         q = q / 0.2;
@@ -313,6 +341,20 @@ fn sdRose(p: vec3f) -> f32 {
         let d = sdPetal(q, scale) * scale;
         
         d_min = min(d_min, d);
+        // d_min_2d = select(
+        //     d_min_2d,
+        //     distancePriority(d, 0),
+        //     d < d_min_2d.distance
+        // );
+        //  if(i > d_min_2d.id)
+        //  {
+        //      d_min_2d.distance = d; // = distancePriority(d, i);
+        //       d_min_2d.id = i;
+        //  }
+        // else{
+        //    // d_min_2d = distancePriority(d, i); 
+        // }
+        //d_min = smin(d_min, d, 0.01);
     }
     
     return d_min;
@@ -320,7 +362,7 @@ fn sdRose(p: vec3f) -> f32 {
 
 
 
-fn flower(p: vec3f, location: vec3f) -> f32 {
+fn flower(p: vec3f, location: vec3f) -> vec2f {
     let center = vec3f(0.0, 0.0, 0.0);
     let pos = p - (center + location);
 
@@ -335,7 +377,7 @@ fn flower(p: vec3f, location: vec3f) -> f32 {
     q.y += curve + wave; 
 
     
-    let size = 0.2;
+    let size = 0.1;
     let v1 = vec3f(0.0, 0.0, -1.0 * size * 0.5);
     let v2 = vec3f(0.0, 0.0,  1.0 * size * 0.5); 
     let v3 = vec3f(2.0 * size, 0.0, 0.0);       
@@ -346,19 +388,27 @@ fn flower(p: vec3f, location: vec3f) -> f32 {
 
    
 
-    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.4, 0.20);
+    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.3, 0.10);
 
 
 
   //  let d = sdPetal(pos ,1);
 
  
-   
-   
-    // Combine with floor
-   let flower =  sdRose(pos); //min(d, min(d_sepals, d_bud));
+   var rose = sdRose(pos+ vec3f(0.0, -0.1, 0.0)); //sdRose(pos);
+   var bud = min(d_sepals, d_bud);
 
-   return flower;
+    // Combine with floor
+   let flower =min(rose,bud);  //sdRose(pos);//  min(sdRose(pos),min(d, min(d_sepals, d_bud))) ; //min(d, min(d_sepals, d_bud)); 
+
+var material = MAT_STEM;
+
+
+if( rose < bud)
+{
+    material = MAT_ROSE;
+} 
+   return vec2f(flower, material);
 }
 
 // --- The Main Scene Description ---
@@ -375,8 +425,9 @@ fn map(p_in: vec3f) -> vec2f {
 
     let d_t =  flower(p, flower_pos);
 
-    if (d_t < res.x) { 
-        res = vec2f(d_t, MAT_STEM); 
+    if (d_t.x < res.x) { 
+
+        res = vec2f(d_t.x, d_t.y); 
     }
 
     // // 2. Stem
@@ -387,9 +438,9 @@ fn map(p_in: vec3f) -> vec2f {
     let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) + 0.01;
     let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);
     
-    // if (d_stem < res.x) { 
-    //     res = vec2f(d_stem, MAT_STEM); 
-    // }
+    //  if (d_stem < res.x) { 
+    //      res = vec2f(d_stem, MAT_STEM); 
+    //  }
 
     // // 3. Leaves
     // // Leaf 1
@@ -490,7 +541,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     let yaw = uniforms.camera.x;
     let pitch = uniforms.camera.y;
-let radius = 1.0;
+    let radius = 1.0;
    let ro = vec3f(
         radius * cos(pitch) * sin(yaw),
         radius * sin(pitch) + 2.0, // +2.0 to keep height relative to lookAt
@@ -530,7 +581,7 @@ let radius = 1.0;
         let p = ro + rd * t;       
         let normal = calc_normal(p); 
         
-        let light_pos = vec3f(2.0, 5.0, -3.0);
+        let light_pos = vec3f(2.0, 2.0, -3.0);
         let light_dir = normalize(light_pos - p);
         
         let diff = clamp(dot(normal, light_dir), 0.1, 1.0);
@@ -544,12 +595,12 @@ let radius = 1.0;
             albedo = vec3f(0.05, 0.15, 0.02);
         } else if (abs(mat_id - MAT_ROSE) < 0.1) {
             let height_factor = smoothstep(2.0, 2.4, p.y);
-            albedo = mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);
+            albedo =vec3f(0.2, 0.02, 0.1);  //mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);
         }
         
 
         
-        let ambient = vec3f(0.1) * albedo;
+        let ambient = vec3f(0.3) * albedo;
         let diffuse = albedo * diff * vec3f(1.0, 0.95, 0.8);// * shadow; 
         
         final_color = ambient + diffuse;
