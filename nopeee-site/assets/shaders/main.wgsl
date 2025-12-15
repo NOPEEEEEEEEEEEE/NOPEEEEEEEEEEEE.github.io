@@ -298,7 +298,7 @@ struct distancePriority {
 fn sdRose(p: vec3f) -> f32 {
 
 
-    let d_sphere = length(p - vec3f(0.0, 0.1, 0.0)) - 0.5;
+    let d_sphere = length(p - vec3f(0.0, 0.1, 0.0)) - 0.4;
 
     if (d_sphere > 0.05) {
         return d_sphere;
@@ -331,16 +331,25 @@ fn sdRose(p: vec3f) -> f32 {
         // --- FIX 2: TILT ADJUSTMENT ---
         // Inner: -0.2 (Tucked in)
         // Outer: 0.6 (Opened up, but not falling over)
-        let tilt = -0.2 + (i / petal_count) * (1.0+sin(time)*0.8); 
+        let tilt = -0.3 + (i / petal_count) * (1.0+sin(time)*0.5); 
         q = opRotateX(q, -tilt);
         
         // Scale the coordinate space
         q = q / 0.2;
 
         // Calculate distance and multiply back
-        let d = sdPetal(q, scale) * scale;
+
+    let pivot_offset = vec3f(0.0, 0.7, 0.0);
         
-        d_min = min(d_min, d);
+        // Pass the offset coordinate to the petal function
+        let d = sdPetal(q - pivot_offset, scale) * scale;
+        
+       
+
+      //  let d = sdPetal(q, scale) * scale;
+
+         d_min = min(d_min, d);
+    //  
         // d_min_2d = select(
         //     d_min_2d,
         //     distancePriority(d, 0),
@@ -388,14 +397,14 @@ fn flower(p: vec3f, location: vec3f) -> vec2f {
 
    
 
-    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.2, 0.0), 0.3, 0.10);
+    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.1, 0.0), 0.4, 0.20);
 
 
 
   //  let d = sdPetal(pos ,1);
 
  
-   var rose = sdRose(pos+ vec3f(0.0, -0.1, 0.0)); //sdRose(pos);
+   var rose = sdRose(pos+ vec3f(0.0, -0.03, 0.0)); //sdRose(pos);
    var bud = min(d_sepals, d_bud);
 
     // Combine with floor
@@ -525,8 +534,28 @@ fn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32) -> f32 {
     return clamp( res, 0.0, 1.0 );
 }
 
-
-
+fn hash12(p: vec2f) -> f32 {
+    var p3  = fract(vec3f(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+fn bayer4x4(p: vec2f) -> f32 {
+    let x = u32(p.x) % 4;
+    let y = u32(p.y) % 4;
+    let index = x + y * 4;
+    
+    // The matrix values [0..15]
+    var m = array<f32, 16>(
+         0.0, 12.0,  3.0, 15.0,
+         8.0,  4.0, 11.0,  7.0,
+         2.0, 14.0,  1.0, 13.0,
+        10.0,  6.0,  9.0,  5.0
+    );
+    
+    // Return normalized value (0.0 to 1.0)
+    // We multiply by 1.0/16.0
+    return m[index] * 0.0625; 
+}
 @fragment
 
 fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
@@ -609,6 +638,18 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
   //  final_color = pow(final_color, vec3f(1.0/2.2));
 
-    return vec4f(final_color, 1.0);
 
+//let noise = hash12(pos.xy + uniforms.time);
+    
+    // 2. Add to Color
+    // (noise - 0.5) makes it center around 0 (range -0.5 to 0.5)
+    // 0.05 is the STRENGTH. Try 0.02 for subtle, 0.1 for gritty.
+ //   final_color += (noise - 0.5) * 0.3;
+
+
+    // Gamma Correction (Standard practice if you haven't added it yet)
+    // final_color = pow(final_color, vec3f(1.0/2.2));
+
+    return vec4f(final_color, 1.0);
+ 
 }
