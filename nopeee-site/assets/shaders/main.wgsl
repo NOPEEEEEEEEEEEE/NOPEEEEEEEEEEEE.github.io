@@ -369,23 +369,68 @@ fn sdRose(p: vec3f) -> f32 {
     return d_min;
 }
 
-
+fn sdStem(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
+    let pa = p - a;
+    let ba = b - a;
+    
+    // 1. Find progress along the stem (0.0 = bottom, 1.0 = top)
+    let h = clamp( dot(pa, ba) / dot(ba, ba), 0.0, 1.0 );
+    
+    // 2. S-CURVE MATH
+    // sin(h * 6.28) creates one full sine wave (Up, Down, Back to center)
+    let wiggle = sin(h * 10.28318)*0.5;
+    
+    // 3. THE STRAIGHTENER (Envelope)
+    // We want the curve to be strong at the bottom, but fade to 0.0 at the top.
+    // pow(..., 0.5) keeps it strong for most of the stem, then drops quickly.
+    // 1.0 - h means: 1.0 at bottom, 0.0 at top.
+    let straightness_mask = pow((1.0 - h), 0.8); 
+    
+    // 4. Calculate Offset
+    // We assume the bend is along X and Z to give it volume
+    let offset_dir = vec3f(bend, 0.0, bend * 0.2);
+    let current_offset = offset_dir * wiggle * straightness_mask;
+    
+    // 5. Position on the curve
+    let pos_on_line = a + ba * h + current_offset;
+    
+    // 6. Taper Radius (Thick bottom, thin top)
+    let radius = r * (1.0 - h * 0.4);
+    
+    // 7. Distance with correction
+    // Multiply by 0.6 to prevent "broken" rendering on the sharp curves
+    return (length(p - pos_on_line) - radius) * 0.6; 
+}
 
 fn flower(p: vec3f, location: vec3f) -> vec2f {
-    let center = vec3f(0.0, 0.0, 0.0);
+
+
+  let time = uniforms.time;
+
+    let center = vec3f(sin(time)*0.05,(1-abs(sin(time)))*0.03, sin(time)*0.03);
+
     let pos = p - (center + location);
+
+   let pos_all =  p - location;
+    
+    
+  
+   let wind_bend = 0.3 + sin( 1.5) * 0.01; //0.2 + sin(time * 1.5) * 0.1; // Base bend 0.2, plus sway
+    
+    let stem_start = vec3f(0.0, -location.y - 0.5, 0.0);
+let stem_end = center; // Ends exactly at flower center
+
+// C. Call function
+let d_stem = sdStem(pos_all, stem_start, stem_end, wind_bend, 0.04);
 
     var q = opPolarRep(pos, 5.0, 0.1);
 
     let curve = q.x * q.x*2 ; 
     
-   
     let wave = sin(q.x * 50.0) * 0.005 + sin(q.z * 50.0) * 0.005 +sin(q.x * 80.0) * 0.003 + sin(q.z * 80.0) * 0.003 ;
     
-
     q.y += curve + wave; 
 
-    
     let size = 0.1;
     let v1 = vec3f(0.0, 0.0, -1.0 * size * 0.5);
     let v2 = vec3f(0.0, 0.0,  1.0 * size * 0.5); 
@@ -397,9 +442,10 @@ fn flower(p: vec3f, location: vec3f) -> vec2f {
 
    
 
-    let d_bud = sdVerticalVesicaSegment(pos - vec3f(0.0, -0.1, 0.0), 0.4, 0.20);
+    var d_bud = sdVerticalVesicaSegment( pos - vec3f(0.0, -0.13, 0.0), 0.4, 0.20);
 
-
+    let cutoff_height = 0.1; 
+    d_bud =  max(d_bud, pos.y - cutoff_height);
 
   //  let d = sdPetal(pos ,1);
 
@@ -407,13 +453,17 @@ fn flower(p: vec3f, location: vec3f) -> vec2f {
    var rose = sdRose(pos+ vec3f(0.0, -0.03, 0.0)); //sdRose(pos);
    var bud = min(d_sepals, d_bud);
 
+    var d_greenery = smin(d_stem, d_sepals, 0.02);
+    d_greenery = smin(d_greenery, d_bud, 0.02);
+
+
     // Combine with floor
-   let flower =min(rose,bud);  //sdRose(pos);//  min(sdRose(pos),min(d, min(d_sepals, d_bud))) ; //min(d, min(d_sepals, d_bud)); 
+   let flower =min(rose,d_greenery);  //sdRose(pos);//  min(sdRose(pos),min(d, min(d_sepals, d_bud))) ; //min(d, min(d_sepals, d_bud)); 
 
 var material = MAT_STEM;
 
 
-if( rose < bud)
+if( rose < d_greenery)
 {
     material = MAT_ROSE;
 } 
@@ -570,7 +620,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     let yaw = uniforms.camera.x;
     let pitch = uniforms.camera.y;
-    let radius = 1.0;
+    let radius = 2.0;
    let ro = vec3f(
         radius * cos(pitch) * sin(yaw),
         radius * sin(pitch) + 2.0, // +2.0 to keep height relative to lookAt
@@ -621,7 +671,7 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         if (abs(mat_id - MAT_GROUND) < 0.1) {
             albedo = vec3f(0.2, 0.2, 0.2);  
         } else if (abs(mat_id - MAT_STEM) < 0.1) {
-            albedo = vec3f(0.05, 0.15, 0.02);
+            albedo = vec3f(0.05, 0.1, 0.02);
         } else if (abs(mat_id - MAT_ROSE) < 0.1) {
             let height_factor = smoothstep(2.0, 2.4, p.y);
             albedo =vec3f(0.2, 0.02, 0.1);  //mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);

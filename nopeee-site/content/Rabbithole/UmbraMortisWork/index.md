@@ -10,49 +10,69 @@ draft: false
 ---
 
 
-
-
-| Role | Duration  | Platform | Team size |Engine| 
-|:-------------|:-------------:|--------------:|:--------------:|--------------:|
-| Generalist  |1 Year  | Windows   | Programmers,  Designers,  Artists    | Unreal Engine 5|
-
 ## Umbra Mortis
+
+Throughout this project I learned a bunch of new things, such as developing multiplayer games adn using networking concepts, using the Scene View Extension to add custom shader passes, or using Niagara. 
 
 ### Visual Effects
 
-![alt text](../UmbraMortisWork/AmmoBox.gif)
-![alt text](../UmbraMortisWork/Bell.gif)
-![alt text](../UmbraMortisWork/HealthDebuf.gif)
-![alt text](../UmbraMortisWork/KeyPickup.gif)
-![alt text](../UmbraMortisWork/Morale.gif)
-![alt text](../UmbraMortisWork/PlayerDissolve.gif)
-![alt text](../UmbraMortisWork/StinkyFish.gif)
+Since out team lacked a VFX artist, I took upon this role, applying my graphics experience to using Niagara.
 
-![alt text](../UmbraMortisWork/WaterCanals.gif)
+#### Ammo Box 
+![alt text](../UmbraMortisWork/AmmoBox.gif)
+
+#### Bell Aura 
+![alt text](../UmbraMortisWork/Bell.gif)
+
+#### Disease Visualization
+
+![alt text](../UmbraMortisWork/HealthDebuf.gif)
+
+#### Key Pickup
+
+![alt text](../UmbraMortisWork/KeyPickup.gif)
+
+#### Bell AOE Visualization
+
+![alt text](../UmbraMortisWork/Morale.gif)
+
+#### Dissolving Effect
+
+![alt text](../UmbraMortisWork/PlayerDissolve.gif)
+![alt text](../UmbraMortisWork/DifColorsAfter.gif)
+
+#### Canals Water
+
+The water is reactive to the environment, creating waves around objects that have contact with it.
 
 
 ![alt text](../UmbraMortisWork/WaterWaves.gif)
 
 ![alt text](../UmbraMortisWork/WaterWaves2.gif)
 
+#### THE STINKY FISH (my proudest achievement so far)
+
+![alt text](../UmbraMortisWork/StinkyFish.gif)
+
 ### Gameplay
 
-![alt text](../UmbraMortisWork/HitmarkersTargets.gif)
-
-![alt text](../UmbraMortisWork/HitMarkHeadshots.gif)
+#### Lobby Practice Targets
 
 ![alt text](../UmbraMortisWork/Targets.gif)
 
+#### Headshot Hitmarkers
 
+Working on this lead to discovery that the shooting was not reliable and accurate for all the players in a session, which we eventually fixed.
 
-### Solving Buggs
+![alt text](../UmbraMortisWork/HitMarkHeadshots.gif)
 
-![alt text](../UmbraMortisWork/DebufOverlay.gif)
-![alt text](../UmbraMortisWork/DifColorsAfter.gif)
-![alt text](../UmbraMortisWork/DownedDamageAfter.gif)
-![alt text](../UmbraMortisWork/DownedPost1.gif)
+#### Teammate Outline Post Process
+
 ![alt text](../UmbraMortisWork/MatchingColors.gif)
 
+#### Downed Post Process
+
+![alt text](../UmbraMortisWork/DownedPost1.gif)
 
 
 ### Networking
