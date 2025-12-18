@@ -16,7 +16,7 @@ Throughout this project I learned a bunch of new things, such as developing mult
 
 ### Visual Effects
 
-Since out team lacked a VFX artist, I took upon this role, applying my graphics experience to using Niagara.
+Since our team lacked a VFX artist, I took upon this role, applying my graphics experience to using Niagara.
 
 #### Ammo Box 
 ![alt text](../UmbraMortisWork/AmmoBox.gif)
@@ -58,6 +58,7 @@ The water is reactive to the environment, creating waves around objects that hav
 
 #### Lobby Practice Targets
 
+
 ![alt text](../UmbraMortisWork/Targets.gif)
 
 #### Headshot Hitmarkers
@@ -83,9 +84,12 @@ The networking aspect of the game did make the development a little bit more dif
 
 ### Research 
 
-In the early stages of the project, when the vision was not yet clear, I decided to experiment with the Scene View Extension class in Unreal Engine 5. This allows injecting custom shader passes at different stages of the rendering pipeline.
+In the early stages of the project, when the vision was not yet clear, I decided to experiment with the Scene View Extension class in Unreal Engine 5. This allows injecting custom shader passes at different stages of the rendering pipeline. This allowed me to create some effects that we did not use in the game, but are worth showing. 
 
+I made use of a depth stencil buffer to create a ghosting effect and a acanning effect.
 
+![alt text](../UmbraMortisWork/RKub.gif)
 
+![alt text](../UmbraMortisWork/PingScan.gif)
 
 

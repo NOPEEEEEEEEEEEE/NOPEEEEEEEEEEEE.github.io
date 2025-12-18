@@ -1,15 +1,16 @@
 ---
-title: "UE Color Tools Plugin"
-summary: "Work in Progress... - UE5 plugin with color tool (vectorscope, histogram, waveform)"
+title: "UE Color Tools "
+summary: ""
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""
 #showSummary: true
 date: 2025-08-06
 draft: false
---- 
+---
 
 ## Coming soon...
+
 
 
 
