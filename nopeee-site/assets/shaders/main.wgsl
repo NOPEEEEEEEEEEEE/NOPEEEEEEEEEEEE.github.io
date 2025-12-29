@@ -216,10 +216,13 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     // 1. SIDE CUPPING (Spoon shape)
     // Stronger on inside (2.0), weaker on outside (1.0)
     let cup_strength = mix(1.9, 0.5, t);
-    let cup_strength_y = mix(0.1, 0.5, t);
+    let cup_strength_y = mix(0.2, 0.5, t);
     pos.z += pos.x * pos.x * cup_strength;
     pos.z += pos.y * pos.y * cup_strength_y;
 
+   // pos.x /= pos.z*0.5; 
+  
+  //  pos.y /= pos.z*0.5;
 
     let curl_factor = mix(0.7, 1.0, t);
 
@@ -307,7 +310,7 @@ fn sdRose(p: vec3f) -> f32 {
     var d_min = 100.0;
    // var d_min_2d = distancePriority(100.0,0.0);
 
-    let petal_count =25.0; 
+    let petal_count =19.0; 
     let golden_angle = 2.39996; 
       let time = uniforms.time * 2.0 ;
     for (var i = 1.0; i < petal_count; i += 1.0) {
@@ -331,7 +334,7 @@ fn sdRose(p: vec3f) -> f32 {
         // --- FIX 2: TILT ADJUSTMENT ---
         // Inner: -0.2 (Tucked in)
         // Outer: 0.6 (Opened up, but not falling over)
-        let tilt = -0.3 + (i / petal_count) * (1.0+sin(time)*0.5); 
+        let tilt = -0.3 + (i / petal_count);// * (1.0+sin(time)*0.5); 
         q = opRotateX(q, -tilt);
         
         // Scale the coordinate space
@@ -367,6 +370,74 @@ fn sdRose(p: vec3f) -> f32 {
     }
     
     return d_min;
+}
+fn sdLeaf(p: vec3f) -> f32 {
+    
+    // --- 1. THE PETIOLE (Leaf Stem) ---
+    // A noticeable stick connecting main stem to leaf.
+    // Starts at 0.0 (Main Stem Surface) and goes to 0.15 (Leaf Start).
+    let petiole_length = 0.15;
+    let p_start = vec3f(0.0, 0.0, 0.0);
+    let p_end   = vec3f(petiole_length, 0.05, 0.0); // Slight rise in Y
+    
+    // Capsule SDF manually
+    let pa = p - p_start;
+    let ba = p_end - p_start;
+    let h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    let d_petiole = length(pa - ba * h) - 0.008; // 0.008 = Thickness
+
+
+    // --- 2. THE LEAF BLADE ---
+    // Shift coordinate system to the end of the petiole
+    var q = p - p_end;
+    
+    // Rotate blade down slightly relative to the petiole
+    q = rot2D_Z(q, -0.3);
+
+    // A. BEND (Gravity)
+    // Smooth quadratic curve down
+    q.y += q.x * q.x * 2.5;
+    
+    // B. FOLD (V-shape)
+    q.y -= abs(q.z) * 0.4;
+
+    // C. SHAPE PROFILE (The "Rose" Shape)
+    // We want: Rounded base, Pointy tip.
+    // We do this by scaling Z based on X.
+    
+    // Define the leaf length
+    let blade_len = 0.35;
+    
+    // "t" is our normalized position along the leaf (0.0 to 1.0)
+    // We assume the leaf is roughly blade_len long.
+    // We use smoothstep to avoid harsh cutoffs.
+    // This creates a teardrop profile: wide at 20%, zero at 100%.
+    // We add 0.2 to avoid division by zero artifacts.
+    let taper = smoothstep(-0.05, 0.1, q.x) * (1.0 - smoothstep(0.1, blade_len, q.x));
+    
+    // Inverse Taper logic for SDF distortion:
+    // If we want it Wide, we divide the coordinate space by a large number.
+    // If we want it Thin (tip), we divide by a small number.
+    // mix(0.5, 3.0, ...) -> 0.5 makes it WIDE, 3.0 makes it TINY.
+    let width_profile = mix(0.5, 5.0, q.x / blade_len);
+    q.z *= width_profile;
+
+    // D. DRAW BLADE
+    // A simple ellipsoid, now distorted by the lines above.
+    let scale = vec3f(blade_len, 0.01, 0.15);
+    
+    // Standard Ellipsoid SDF
+    let k0 = length(q / scale);
+    let k1 = length(q / (scale * scale));
+    let d_blade = k0 * (k0 - 1.0) / k1;
+    
+    // Cut off the blade before it goes backwards into the stem
+    // (Optional, keeps things clean)
+    // d_blade = max(d_blade, -q.x);
+
+    // --- 3. COMBINE ---
+    // Smoothly weld the petiole and the blade
+    return d_petiole;//smin(d_petiole, d_blade, 0.015);
 }
 
 fn sdStem(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
@@ -406,99 +477,113 @@ fn sdStemWithSpines(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
     let ba = b - a;
     let ba_length = length(ba);
     
-    // 1. Progress along straight line
+    // 1. STEM CURVE (Standard Logic)
     let h = clamp( dot(pa, ba) / dot(ba, ba), 0.0, 1.0 );
-    
-    // 2. CURVE MATH
     let wiggle = sin(h * 10.28318) * 0.5;
     let straightness_mask = pow((1.0 - h), 0.8); 
     let offset_dir = vec3f(bend, 0.0, bend * 0.2);
     let current_offset = offset_dir * wiggle * straightness_mask;
     
-    // 3. STEM DISTANCE
     let pos_on_line = a + ba * h + current_offset;
-    // Taper: Thick bottom (1.0), Thin top (0.6)
     let stem_radius = r * (1.0 - h * 0.4); 
     
-    // We save the raw stem distance before scaling/correction
-    let d_stem_raw = length(p - pos_on_line) - stem_radius;
-    let d_stem = d_stem_raw * 0.6; // Correction for curve
+    let d_stem = (length(p - pos_on_line) - stem_radius) * 0.6;
     
-    // --- 4. SPINE LOGIC ---
-    
-    // A. Local Coordinate setup
-    // Center everything around the current point on the curve
-    var p_spine = p - pos_on_line;
-    
-    // B. Cell Repetition
-    // We want spines every ~0.2 units of height
-    let density = 15.0; 
-    let id = floor(h * density);
-    
-    // Local height within the cell (range -0.5 to 0.5)
-    // We must scale this by the segment length to get real world units
-    let local_y = (fract(h * density) - 0.5) * (ba_length / density);
-    
-    // C. Rotation (Golden Angle Spiral)
-    let angle = id * 2.39996; // ~137.5 degrees
-    p_spine = opRotateY(p_spine, angle);
-    
-    // D. Positioning
-    // 1. Set Y to the local cell height
-    p_spine.y = local_y; 
-    
-    // 2. Move OUT to surface
-    // We subtract radius from X. This moves the coordinate system LEFT.
-    // This means x=0 is now at the surface of the stem.
-    p_spine.x -= stem_radius; 
-    
-    // 3. Downward Tilt
-    // Rose thorns usually point slightly down. Let's rotate on Z axis.
-    // We tilt the COORDINATE up, so the object points DOWN.
-    p_spine = rot2D_Z(p_spine, 0.5); // 0.5 radians tilt
-    
-    // E. Evaluate Spine SDF
-    var d_spine = 10.0;
-    
-    // Only draw spines in middle section to avoid clipping flower/ground
-    if (h > 0.1 && h < 0.9) {
-        // SCALE: 0.08 is the size of the thorn.
-        // We divide coordinate by 0.08, calc dist, then multiply back.
+    // --- SPINE LOGIC (Thorns) ---
+    var d_spine = 100.0;
+    // Check bounding box for spines (close to stem)
+    if (length(p - pos_on_line) < 0.2 && h > 0.1 && h < 0.9) {
+        let density = 15.0; 
+        let id = floor(h * density);
+        let local_y = (fract(h * density) - 0.5) * (ba_length / density);
+        
+        var p_s = p - pos_on_line;
+        p_s = opRotateY(p_s, id * 2.4); // Golden Angle Rotation
+        p_s.y = local_y; 
+        p_s.x -= stem_radius; 
+        p_s = rot2D_Z(p_s, 1.57); // Tilt 90 deg (Point out)
+        
         let scale = 0.08;
-        d_spine = sdSpine(p_spine / scale) * scale;
+        d_spine = sdSpine(p_s / scale) * scale;
     }
- //d_spine = sdSpine(p) ;
-    // --- 5. COMBINE ---
-    // Smooth blend. 0.003 creates a tiny fillet weld at the base.
-    return    smin(d_stem, d_spine, 0.003);
-}
 
+    // --- LEAF LOGIC (New!) ---
+    var d_leaf = 100.0;
+    
+    // Bounding box: Allow leaves to be further out (0.6 radius)
+    if (length(p - pos_on_line) < 0.6 && h > 0.15 && h < 0.8) {
+        // Low Density: We only want ~3 leaves along the stem
+        let leaf_density = 3.5; 
+        let id = floor(h * leaf_density);
+        
+        // Calculate local Y same as spines
+        let local_y = (fract(h * leaf_density) - 0.5) * (ba_length / leaf_density);
+        
+        var p_l = p - pos_on_line;
+        
+        // Rotate leaves. 
+        // We add '+ 1.0' to offset them so they don't line up perfectly with spines
+        p_l = opRotateY(p_l, id * 2.4 + 1.0); 
+        
+        p_l.y = local_y; 
+        
+        // Push out to surface
+        p_l.x -= stem_radius; 
+        
+        // Tilt Up: Leaves usually point slightly up (45 degrees / 0.7 rad)
+        p_l = rot2D_Z(p_l, 0.7); 
+        
+        d_leaf = sdLeaf(p_l);
+    }
+
+    // --- COMBINE ---
+    // Smoothly blend stem + spines + leaves
+    let d_stem_spine = smin(d_stem, d_spine, 0.003);
+    
+    // Blend leaves with a slightly softer value (0.01) for a nice joint
+    return smin(d_stem_spine, d_leaf, 0.01);
+}
 // Helper for Z-rotation (Tilt) if you don't have it
 fn rot2D_Z(p: vec3f, angle: f32) -> vec3f {
     let s = sin(angle);
     let c = cos(angle);
     return vec3f(c * p.x - s * p.y, s * p.x + c * p.y, p.z);
 }
+fn sdCone(p: vec3f, c: vec2f, h: f32) -> f32 {
+    let q = length(p.xz);
+    return max(dot(c, vec2f(q, p.y)), -h - p.y);
+}
 fn sdSpine(p: vec3f) -> f32 {
-    var q = p;
+    var q = p-vec3f(0.0,0.7,0.0);
 
     // 1. FLATTEN SIDES (Shark Fin / Thorn shape)
     // We make coordinate space 2x larger in Z...
-    q.z *= 5.0; 
-q.y += q.x * q.x * 2.0;
+    q.z *=7.0; 
+   // q.z *= (1-q.y);
+//    q.x += abs(q.y*q.y)*0.5; 
+q.x /= abs(q.y)*0.7; 
+q.x -= (1+q.y) * 1.5;
+//q.x += ; 
+//q.x +=//  (1-q.y)* (1-q.y); 
+ //q.x += abs(q.y*q.y)*0.5; 
+    // ...then we bend it.
+//q.y += q.x * q.x * 2.0;
     // 2. BEND DOWN
-    q.y += pow(max(q.x, 0.0), 2.0) * 1.5;
+  //  q.y += pow(max(q.x, 0.0), 2.0) * 1.5;
 
+let h = 1.0;
+    let r = 0.15;
+
+return sdCone(q, vec2f(r,r), h);
     // 3. CONE SHAPE
-    let h = 0.5;
-    let r = 0.25;
-    let q_cone = vec2f(length(q.yz), q.x);
-    let d = max(dot(q_cone, normalize(vec2f(h, r))), q.x - h);
+//    
+ //   let q_cone = vec2f(length(q.yz), q.x);
+   // let d = max(dot(q_cone, normalize(vec2f(h, r))), q.x - h);
 
     // 4. THE FIX: DISTANCE CORRECTION
     // Since we multiplied Z by 2.0, we must divide the result by 2.0 (multiply by 0.5).
     // Otherwise the ray overshoots and creates infinite streaks.
-    return d * 0.5;
+   // return d * 0.5;
 }
 
 fn flower(p: vec3f, location: vec3f) -> vec2f {
