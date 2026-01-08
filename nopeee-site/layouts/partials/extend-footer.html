@@ -1,0 +1,200 @@
+<script type="module">
+  async function initWebGPU() {
+    
+    // --- 1. CHECKS ---
+    
+  const allowedPaths = [
+        "/",         
+        "/about/",   
+        "/projects/",
+        "/articles/"    
+    ];
+
+    // Check if the current URL is in that list
+    // We strictly check the pathname (URL)
+    const shouldRun = allowedPaths.includes(window.location.pathname);
+
+    if (!shouldRun) return;
+    if (!navigator.gpu) { console.log("WebGPU not supported"); return; }
+
+    // --- 2. SETUP CANVAS ---
+    document.body.style.backgroundColor = "transparent";
+    const canvas = document.createElement("canvas");
+    canvas.id = "webgpu-bg";
+    document.body.prepend(canvas);
+    Object.assign(canvas.style, {
+      position: "fixed", top: "0", left: "0",
+      width: "100vw", height: "100vh",
+      zIndex: "-1", pointerEvents: "none" 
+    });
+
+    // --- 3. INITIALIZE GPU ---
+    const adapter = await navigator.gpu.requestAdapter();
+    const device = await adapter.requestDevice();
+    const context = canvas.getContext("webgpu");
+
+    // --- 4. SHADER CODE (Safe Injection) ---
+    // Note: The path is relative to the "assets" folder
+    {{ $shader := resources.Get "shaders/main.wgsl" }}
+    
+    {{ with $shader }}
+        const shaderCode = `{{ .Content }}`;
+    {{ else }}
+        console.error("CRITICAL ERROR: 'assets/shaders/main.wgsl' not found!");
+        return; 
+    {{ end }}
+
+    // --- 5. PIPELINE SETUP ---
+    const shaderModule = device.createShaderModule({ code: shaderCode });
+    const pipeline = device.createRenderPipeline({
+      layout: "auto",
+      vertex: { module: shaderModule, entryPoint: "vs_main" },
+      fragment: {
+        module: shaderModule,
+        entryPoint: "fs_main",
+        targets: [{ format: navigator.gpu.getPreferredCanvasFormat() }],
+      },
+      primitive: { topology: "triangle-list" },
+    });
+
+    // --- 6. UNIFORM BUFFER SETUP ---
+  // We need more space now! 
+  // Old: [w, h, time, padding] (16 bytes)
+  // New: [w, h, time, padding, yaw, pitch, padding, padding] (32 bytes)
+  const uniformBufferSize = 32; 
+  const uniformBuffer = device.createBuffer({
+    size: uniformBufferSize,
+    usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
+  });
+
+  const uniformValues = new Float32Array(8); // Increased to 8 floats
+
+  const bindGroup = device.createBindGroup({
+    layout: pipeline.getBindGroupLayout(0),
+    entries: [
+      { binding: 0, resource: { buffer: uniformBuffer } },
+    ],
+  });
+
+  // --- MOUSE CONTROL VARIABLES ---
+  let isDragging = false;
+  let lastMouseX = 0;
+  let lastMouseY = 0;
+  
+  // Camera Angles (Default view)
+  // Yaw: Rotation around Y axis
+  // Pitch: Up/Down look
+  let Multiplier = 0.5; 
+  let cameraPitch = 0.5; 
+
+  let cameraYaw = 0; // The accumulated angle
+
+  // --- MOUSE EVENT LISTENERS ---
+  window.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+  window.addEventListener("mouseup", () => {
+      isDragging = false;
+  });
+
+  window.addEventListener("mousemove", (e) => {
+
+    Multiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+         cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
+      if (!isDragging) return;
+
+      const sensitivity = 0.005;
+      const deltaX = e.clientX - lastMouseX;
+      const deltaY = e.clientY - lastMouseY;
+
+      // Update angles
+    // cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
+    //  cameraPitch += deltaY * sensitivity;
+
+      // Clamp Pitch so you don't flip upside down
+      // Limit between -89 degrees and +89 degrees (in radians)
+    //  cameraPitch = Math.max(-1.5, Math.min(1.5, cameraPitch));
+
+      lastMouseX = e.clientX;
+      lastMouseY = e.clientY;
+  });
+
+
+  // --- 7. RESIZE HANDLER ---
+  const resize = () => {
+    const w = window.innerWidth/2;
+    const h = window.innerHeight/2;
+    canvas.width = w;
+    canvas.height = h;
+    context.configure({
+      device: device,
+      format: navigator.gpu.getPreferredCanvasFormat(),
+      alphaMode: "premultiplied",
+    });
+    uniformValues[0] = w;
+    uniformValues[1] = h;
+  };
+  window.addEventListener("resize", resize);
+  resize(); 
+
+
+  let lastTime = performance.now() / 1000;
+
+  function frame() {
+    const time = performance.now() / 1000;
+    
+
+
+    const dt = time - lastTime;
+    lastTime = time;
+
+  
+    let speed = Multiplier * 1.7;
+
+
+    const minSpeed = 0.2; 
+
+    if (speed >= 0 && speed < minSpeed) {
+        speed = minSpeed;
+    } else if (speed < 0 && speed > -minSpeed) {
+        speed = -minSpeed;
+    }
+    
+    cameraYaw += speed * dt;
+
+    // Update Uniform Array
+    uniformValues[2] = time;       // Time
+    uniformValues[4] = cameraYaw;  // Camera Yaw
+    uniformValues[5] = cameraPitch;// Camera Pitch
+
+    // Write to GPU
+    device.queue.writeBuffer(uniformBuffer, 0, uniformValues);
+
+    const commandEncoder = device.createCommandEncoder();
+    const textureView = context.getCurrentTexture().createView();
+    
+    const renderPassDescriptor = {
+      colorAttachments: [{
+        view: textureView,
+        clearValue: { r: 0.0, g: 0.0, b: 0.0, a: 0.0 },
+        loadOp: "clear",
+        storeOp: "store",
+      }],
+    };
+    
+    const passEncoder = commandEncoder.beginRenderPass(renderPassDescriptor);
+    passEncoder.setPipeline(pipeline);
+    passEncoder.setBindGroup(0, bindGroup); 
+    passEncoder.draw(3);
+    passEncoder.end();
+    
+    device.queue.submit([commandEncoder.finish()]);
+    requestAnimationFrame(frame);
+  }
+  frame();
+  }
+  initWebGPU();
+</script>
