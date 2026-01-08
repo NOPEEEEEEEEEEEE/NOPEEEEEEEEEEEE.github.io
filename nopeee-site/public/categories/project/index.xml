@@ -8,7 +8,7 @@
     <language>en</language>
     <managingEditor>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</managingEditor>
     <webMaster>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</webMaster>
-    <copyright>© 2025 Bogdan Depărățeanu</copyright>
+    <copyright>© 2026 Bogdan Depărățeanu</copyright>
     <lastBuildDate>Wed, 06 Aug 2025 00:00:00 +0000</lastBuildDate><atom:link href="http://localhost:1313/categories/project/index.xml" rel="self" type="application/rss+xml" />
     
     <item>
@@ -67,7 +67,7 @@
       <pubDate>Mon, 01 Jul 2024 00:00:00 +0000</pubDate>
       <author>bogdandeparateanu@gmail.com (Bogdan Depărățeanu)</author>
       <guid>http://localhost:1313/projects/owlet/</guid>
-      <description>RTS game made using custom engine</description>
+      <description>RTS game made using the PEPI custom engine</description>
       <media:content xmlns:media="http://search.yahoo.com/mrss/" url="http://localhost:1313/projects/owlet/cover.png" />
     </item>
     

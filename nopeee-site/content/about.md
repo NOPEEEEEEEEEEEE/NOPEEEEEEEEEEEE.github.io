@@ -17,11 +17,11 @@ showAuthor: false
 
 {{< lead >}}
 
-I spend most of my time being confused. But I also know how to code, paint, make music and other stuff. 
+I am mostly confused. But I also enjoy coding, painting and making music. I treat everything I do as an art. 
 {{< /lead >}}
 
 
-
+  
 
 
 

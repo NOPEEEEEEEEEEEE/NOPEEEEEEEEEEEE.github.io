@@ -16,7 +16,7 @@ Throughout this project I learned a bunch of new things, such as developing mult
 
 ### Visual Effects
 
-Since our team lacked a VFX artist, I took upon this role, applying my graphics experience to using Niagara.
+Since our team lacked a VFX artist, I took upon this role, applying my shader experience to using Niagara. I would regularly receive feedback from the Visual Artists in our team, ensuring that the effects are cohesive with the rest of the game. 
 
 #### Ammo Box 
 ![alt text](../UmbraMortisWork/AmmoBox.gif)
@@ -84,12 +84,14 @@ The networking aspect of the game did make the development a little bit more dif
 
 ### Research 
 
-In the early stages of the project, when the vision was not yet clear, I decided to experiment with the Scene View Extension class in Unreal Engine 5. This allows injecting custom shader passes at different stages of the rendering pipeline. This allowed me to create some effects that we did not use in the game, but are worth showing. 
+In the early stages of the project, when the vision was not yet clear, I decided to experiment with the Scene View Extension class in Unreal Engine 5. This allows injecting custom shader passes at different stages of the rendering pipeline. This allowed me to create some effects that we did not end up using in the game, but are worth showing. 
 
-I made use of a depth stencil buffer to create a ghosting effect and a acanning effect.
+I made use of a depth stencil buffer to create a ghosting effect and a scanning effect.
 
 ![alt text](../UmbraMortisWork/RKub.gif)
 
 ![alt text](../UmbraMortisWork/PingScan.gif)
 
+The research I did with those has lead me to start working on this project: 
 
+{{< article link="/projects/ue5colortools/" showSummary=true compactSummary=true >}}

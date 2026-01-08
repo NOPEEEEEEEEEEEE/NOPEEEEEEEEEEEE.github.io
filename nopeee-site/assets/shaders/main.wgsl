@@ -2,7 +2,8 @@ struct Uniforms {
   resolution: vec2f,
   time: f32,
   padding: f32, // Padding to align the next vec2 to 16 bytes
-  camera: vec2f, // x = yaw, y = pitch
+  yaw: f32, // x = yaw, y = pitch
+  pitch: f32
 }
 
 
@@ -13,6 +14,9 @@ struct Uniforms {
 const MAT_GROUND = 0.0;
 const MAT_STEM = 1.0;
 const MAT_ROSE = 2.0;
+const MAT_DIRT = 3.0;
+
+
 
 @vertex
 fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) vec4f {
@@ -24,9 +28,26 @@ fn vs_main(@builtin(vertex_index) in_vertex_index: u32) -> @builtin(position) ve
   return vec4f(pos[in_vertex_index], 0.0, 1.0);
 }
 
-fn sdBox(p: vec3f, b: vec3f) -> f32 {
-    let d = abs(p) - b;
-    return length(max(d, vec3f(0.0))) + min(max(d.x, max(d.y, d.z)), 0.0);
+fn hash12(p: vec2f) -> f32 {
+    var p3  = fract(vec3f(p.xyx) * .1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+}
+fn bayer4x4(p: vec2f) -> f32 {
+    let x = u32(p.x) % 4;
+    let y = u32(p.y) % 4;
+    let index = x + y * 4;
+    
+    
+    var m = array<f32, 16>(
+         0.0, 12.0,  3.0, 15.0,
+         8.0,  4.0, 11.0,  7.0,
+         2.0, 14.0,  1.0, 13.0,
+        10.0,  6.0,  9.0,  5.0
+    );
+    
+  
+    return m[index] * 0.0625; 
 }
 
 // --- SDF Primitive Helpers ---
@@ -44,10 +65,16 @@ fn opRotateX(p: vec3f, angle: f32) -> vec3f {
 }
 
 
-fn rot2D(p: vec2f, angle: f32) -> vec2f {
+
+fn opRotateZ(p: vec3f, angle: f32) -> vec3f {
     let s = sin(angle);
     let c = cos(angle);
-    return vec2f(c * p.x - s * p.y, s * p.x + c * p.y);
+    return vec3f(c * p.x - s * p.y, s * p.x + c * p.y, p.z);
+}
+
+fn sdCone(p: vec3f, c: vec2f, h: f32) -> f32 {
+    let q = length(p.xz);
+    return max(dot(c, vec2f(q, p.y)), -h - p.y);
 }
 
 fn sdSphere(p: vec3f, s: f32) -> f32 {
@@ -73,20 +100,7 @@ fn smin(a: f32, b: f32, k: f32) -> f32 {
     return mix(b, a, h) - k * h * (1.0 - h);
 }
 
-fn opCheapBend(p: vec3f) -> vec3f {
-    let k = 10.0; // The amount to bend
-    
-    let c = cos(k * p.x);
-    let s = sin(k * p.x);
-    
-    // Construct 2x2 Rotation Matrix
-    // Note: WGSL matrices are column-major, just like GLSL
-    let m = mat2x2f(c, -s, s, c);
-    
-    // Apply rotation to X and Y, leave Z alone
-    // The matrix multiplication (m * p.xy) works natively
-    return vec3f(m * p.xy, p.z);
-}
+
 
 fn sdVerticalVesicaSegment(p: vec3f, h_in: f32, w_in: f32) -> f32 {
     // 1. Create mutable local copies of the inputs
@@ -213,9 +227,9 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
 
     // --- BENDING ---
     
-    // 1. SIDE CUPPING (Spoon shape)
+    //SIDE CUPPING (Spoon shape)
     // Stronger on inside (2.0), weaker on outside (1.0)
-    let cup_strength = mix(1.9, 0.5, t);
+    let cup_strength = mix(1.9, 0.05, t);
     let cup_strength_y = mix(0.2, 0.5, t);
     pos.z += pos.x * pos.x * cup_strength;
     pos.z += pos.y * pos.y * cup_strength_y;
@@ -224,7 +238,7 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
   
   //  pos.y /= pos.z*0.5;
 
-    let curl_factor = mix(0.7, 1.0, t);
+    let curl_factor = mix(0.9, 3.2, t);
 
   let tip_height = max(pos.y - 0.3, 0.0);
     let tip_side = max(abs(pos.x)/curl_factor - 0.1, 0.0);
@@ -232,30 +246,22 @@ fn sdPetal(p: vec3f, s: f32) -> f32 {
     // We use a square curve (pow 2.0) for a smooth bend
     let curl_amount = pow(tip_height, 2.0) * 2.0 * t +  pow(tip_side, 2.0)*0.8; // Active mainly on outer petals
     
-    // A. Curl BACK (Negative Z)
+    // Curl BACK (Negative Z)
     pos.z -= curl_amount;
     
-   //pos.y += curl_amount * 1.5;
-  //  let tip_height = max(pos.y - 0.4, 0.0);
-     
-    // We reduced the multiplier from 15.0 to 5.0 to stop the "Huge" explosion
-  //  let recurve_amount =   //pow(tip_height, 2.5) * 3.0;// * t;
-   // pos.z -= recurve_amount;
+
 
 let bulge_domain = vec2f(pos.x, pos.y * 0.7); 
     let dist_sq = dot(bulge_domain, bulge_domain);
     
-    // 2. The Gaussian Formula
-    // exp(-k * dist_sq)
-    // k = 10.0 (Controls sharpness. Higher = smaller button)
+    
     let gaussian = exp(-4.0 * dist_sq);
     
-    // 3. Apply bulge
-    // We blend it with 't' so outer petals bulge more than inner ones?
-    // Or just fixed amount: 0.05
+    //  Apply bulge
+ 
     let bulge_strength = 0.25; 
     
-    // Subtract from Z to push it "Out" (towards camera/negative Z)
+    // Subtract from Z to push it "Out" 
     pos.z -= gaussian * bulge_strength;
   
   //  let z_taper_strength = 0.8; 
@@ -293,10 +299,7 @@ let pointiness = 1+ max(pos.y - 0.6, 0.0) * 2;
  
 }
 
-struct distancePriority {
-    distance: f32,
-    id: f32,
-};
+
 
 fn sdRose(p: vec3f) -> f32 {
 
@@ -310,31 +313,25 @@ fn sdRose(p: vec3f) -> f32 {
     var d_min = 100.0;
    // var d_min_2d = distancePriority(100.0,0.0);
 
-    let petal_count =19.0; 
+    let petal_count =15.0; 
     let golden_angle = 2.39996; 
       let time = uniforms.time * 2.0 ;
     for (var i = 1.0; i < petal_count; i += 1.0) {
         
-        let r = (0.03) * sqrt(i); // Kept radius compact+sin(time)*0.01
+        let r = (0.01) * sqrt(i); 
         let theta = i * golden_angle;
          
         // Lower outer petals
         let petal_center = vec3f(r * cos(theta), -r * 0.2, r * sin(theta));
 
-        // --- FIX 1: REDUCED SCALE RANGE ---
-        // Was: 0.2 + ... * 0.3 (Result 0.5)
-        // Now: 0.2 + ... * 0.15 (Result 0.35)
-        // This prevents the outer petals from becoming giant monsters.
+        
         let scale = 0.1 + (i / petal_count) * 0.25;
 
         var q = p - petal_center;
         
         q = opRotateY(q, -theta + 1.57);
-        
-        // --- FIX 2: TILT ADJUSTMENT ---
-        // Inner: -0.2 (Tucked in)
-        // Outer: 0.6 (Opened up, but not falling over)
-        let tilt = -0.3 + (i / petal_count);// * (1.0+sin(time)*0.5); 
+      
+        let tilt = -0.3 + (i / petal_count)* (1.0+sin(time)*0.2); // 
         q = opRotateX(q, -tilt);
         
         // Scale the coordinate space
@@ -344,41 +341,23 @@ fn sdRose(p: vec3f) -> f32 {
 
     let pivot_offset = vec3f(0.0, 0.7, 0.0);
         
-        // Pass the offset coordinate to the petal function
+      
         let d = sdPetal(q - pivot_offset, scale) * scale;
         
-       
-
-      //  let d = sdPetal(q, scale) * scale;
-
+   
          d_min = min(d_min, d);
-    //  
-        // d_min_2d = select(
-        //     d_min_2d,
-        //     distancePriority(d, 0),
-        //     d < d_min_2d.distance
-        // );
-        //  if(i > d_min_2d.id)
-        //  {
-        //      d_min_2d.distance = d; // = distancePriority(d, i);
-        //       d_min_2d.id = i;
-        //  }
-        // else{
-        //    // d_min_2d = distancePriority(d, i); 
-        // }
-        //d_min = smin(d_min, d, 0.01);
+  
     }
     
     return d_min;
 }
 fn sdLeaf(p: vec3f) -> f32 {
     
-    // --- 1. THE PETIOLE (Leaf Stem) ---
-    // A noticeable stick connecting main stem to leaf.
-    // Starts at 0.0 (Main Stem Surface) and goes to 0.15 (Leaf Start).
-    let petiole_length = 0.15;
-    let p_start = vec3f(0.0, 0.0, 0.0);
-    let p_end   = vec3f(petiole_length, 0.05, 0.0); // Slight rise in Y
+    // 1. THE PETIOLE (Leaf Stem) ---
+ 
+    let petiole_length = 0.09;
+    let p_start = vec3f(0.1, 0.1, 0.0);
+    let p_end   = vec3f(petiole_length, -0.1, 0.0); // Slight rise in Y
     
     // Capsule SDF manually
     let pa = p - p_start;
@@ -387,97 +366,84 @@ fn sdLeaf(p: vec3f) -> f32 {
     let d_petiole = length(pa - ba * h) - 0.008; // 0.008 = Thickness
 
 
-    // --- 2. THE LEAF BLADE ---
+    // THE LEAF BLADE ---
     // Shift coordinate system to the end of the petiole
-    var q = p - p_end;
+    var q = p ;
     
-    // Rotate blade down slightly relative to the petiole
-    q = rot2D_Z(q, -0.3);
+    let time =uniforms.time;
 
-    // A. BEND (Gravity)
-    // Smooth quadratic curve down
-    q.y += q.x * q.x * 2.5;
+    // Rotate blade down slightly relative to the petiole
+    q = opRotateZ(q, -0.9);
+    q = opRotateY(q, -3.14);
     
-    // B. FOLD (V-shape)
+    q= q- vec3f(-0.3, 0.0, 0.0);
+    //BEND (Gravity)
+    
+    q.y += q.x * q.x * 1.5;
+    
+    // FOLD (V-shape)
     q.y -= abs(q.z) * 0.4;
 
-    // C. SHAPE PROFILE (The "Rose" Shape)
-    // We want: Rounded base, Pointy tip.
-    // We do this by scaling Z based on X.
+    // SHAPE PROFILE (The "Rose" Shape)
+ 
+    let blade_len = 0.25;
     
-    // Define the leaf length
-    let blade_len = 0.35;
-    
-    // "t" is our normalized position along the leaf (0.0 to 1.0)
-    // We assume the leaf is roughly blade_len long.
-    // We use smoothstep to avoid harsh cutoffs.
-    // This creates a teardrop profile: wide at 20%, zero at 100%.
-    // We add 0.2 to avoid division by zero artifacts.
+  
     let taper = smoothstep(-0.05, 0.1, q.x) * (1.0 - smoothstep(0.1, blade_len, q.x));
     
-    // Inverse Taper logic for SDF distortion:
-    // If we want it Wide, we divide the coordinate space by a large number.
-    // If we want it Thin (tip), we divide by a small number.
-    // mix(0.5, 3.0, ...) -> 0.5 makes it WIDE, 3.0 makes it TINY.
-    let width_profile = mix(0.5, 5.0, q.x / blade_len);
-    q.z *= width_profile;
+    let width_profile = mix(0.1, 5.0, q.x / blade_len);
+ 
 
-    // D. DRAW BLADE
-    // A simple ellipsoid, now distorted by the lines above.
+    // DRAW BLADE
+    
     let scale = vec3f(blade_len, 0.01, 0.15);
     
-    // Standard Ellipsoid SDF
+    // Ellipsoid SDF
     let k0 = length(q / scale);
     let k1 = length(q / (scale * scale));
     let d_blade = k0 * (k0 - 1.0) / k1;
     
-    // Cut off the blade before it goes backwards into the stem
-    // (Optional, keeps things clean)
-    // d_blade = max(d_blade, -q.x);
-
-    // --- 3. COMBINE ---
-    // Smoothly weld the petiole and the blade
-    return d_petiole;//smin(d_petiole, d_blade, 0.015);
+   
+    return smin(d_petiole, d_blade, 0.015);
 }
 
 fn sdStem(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
     let pa = p - a;
     let ba = b - a;
     
-    // 1. Find progress along the stem (0.0 = bottom, 1.0 = top)
+    // Find progress along the stem (0.0 = bottom, 1.0 = top)
     let h = clamp( dot(pa, ba) / dot(ba, ba), 0.0, 1.0 );
     
-    // 2. S-CURVE MATH
-    // sin(h * 6.28) creates one full sine wave (Up, Down, Back to center)
+    // S-CURVE
+    
     let wiggle = sin(h * 10.28318)*0.5;
     
-    // 3. THE STRAIGHTENER (Envelope)
-    // We want the curve to be strong at the bottom, but fade to 0.0 at the top.
-    // pow(..., 0.5) keeps it strong for most of the stem, then drops quickly.
-    // 1.0 - h means: 1.0 at bottom, 0.0 at top.
+    //THE STRAIGHTENER
+   
     let straightness_mask = pow((1.0 - h), 0.8); 
     
-    // 4. Calculate Offset
+ 
     // We assume the bend is along X and Z to give it volume
     let offset_dir = vec3f(bend, 0.0, bend * 0.2);
     let current_offset = offset_dir * wiggle * straightness_mask;
     
-    // 5. Position on the curve
+    //Position on the curve
     let pos_on_line = a + ba * h + current_offset;
     
-    // 6. Taper Radius (Thick bottom, thin top)
+    // Taper Radius
     let radius = r * (1.0 - h * 0.4);
     
-    // 7. Distance with correction
-    // Multiply by 0.6 to prevent "broken" rendering on the sharp curves
+    //Distance with correction
+
     return (length(p - pos_on_line) - radius) * 0.6; 
 }
-fn sdStemWithSpines(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
+
+fn sdStemWithSpines(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> vec2f {
     let pa = p - a;
     let ba = b - a;
     let ba_length = length(ba);
     
-    // 1. STEM CURVE (Standard Logic)
+    //-------------------------STEM CURVE 
     let h = clamp( dot(pa, ba) / dot(ba, ba), 0.0, 1.0 );
     let wiggle = sin(h * 10.28318) * 0.5;
     let straightness_mask = pow((1.0 - h), 0.8); 
@@ -489,29 +455,29 @@ fn sdStemWithSpines(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
     
     let d_stem = (length(p - pos_on_line) - stem_radius) * 0.6;
     
-    // --- SPINE LOGIC (Thorns) ---
+    // ----------------------SPINES
     var d_spine = 100.0;
-    // Check bounding box for spines (close to stem)
+  
     if (length(p - pos_on_line) < 0.2 && h > 0.1 && h < 0.9) {
         let density = 15.0; 
         let id = floor(h * density);
         let local_y = (fract(h * density) - 0.5) * (ba_length / density);
         
         var p_s = p - pos_on_line;
-        p_s = opRotateY(p_s, id * 2.4); // Golden Angle Rotation
+        p_s = opRotateY(p_s, id * 2.4);
         p_s.y = local_y; 
         p_s.x -= stem_radius; 
-        p_s = rot2D_Z(p_s, 1.57); // Tilt 90 deg (Point out)
+        p_s = opRotateZ(p_s, 1.57); 
         
         let scale = 0.08;
         d_spine = sdSpine(p_s / scale) * scale;
     }
 
-    // --- LEAF LOGIC (New!) ---
+    // --------------------- LEAF
     var d_leaf = 100.0;
     
-    // Bounding box: Allow leaves to be further out (0.6 radius)
-    if (length(p - pos_on_line) < 0.6 && h > 0.15 && h < 0.8) {
+    // Bounding box
+    if (length(p - pos_on_line) < 0.9 && h > 0.15 && h < 0.8) {
         // Low Density: We only want ~3 leaves along the stem
         let leaf_density = 3.5; 
         let id = floor(h * leaf_density);
@@ -530,64 +496,51 @@ fn sdStemWithSpines(p: vec3f, a: vec3f, b: vec3f, bend: f32, r: f32) -> f32 {
         // Push out to surface
         p_l.x -= stem_radius; 
         
-        // Tilt Up: Leaves usually point slightly up (45 degrees / 0.7 rad)
-        p_l = rot2D_Z(p_l, 0.7); 
+      
+        p_l = opRotateZ(p_l, 0.7); 
         
         d_leaf = sdLeaf(p_l);
     }
 
-    // --- COMBINE ---
-    // Smoothly blend stem + spines + leaves
-    let d_stem_spine = smin(d_stem, d_spine, 0.003);
+
+    let d_stem_d_leaf = smin(d_stem, d_leaf, 0.003);
     
-    // Blend leaves with a slightly softer value (0.01) for a nice joint
-    return smin(d_stem_spine, d_leaf, 0.01);
+    var fin = smin(d_stem_d_leaf, d_spine, 0.01);
+    var material = MAT_STEM;
+    if(d_spine< d_stem_d_leaf)
+    {
+        material = MAT_DIRT; 
+    }
+    
+
+    
+    return vec2f(fin, material);
 }
-// Helper for Z-rotation (Tilt) if you don't have it
-fn rot2D_Z(p: vec3f, angle: f32) -> vec3f {
-    let s = sin(angle);
-    let c = cos(angle);
-    return vec3f(c * p.x - s * p.y, s * p.x + c * p.y, p.z);
-}
-fn sdCone(p: vec3f, c: vec2f, h: f32) -> f32 {
-    let q = length(p.xz);
-    return max(dot(c, vec2f(q, p.y)), -h - p.y);
-}
+
+
 fn sdSpine(p: vec3f) -> f32 {
     var q = p-vec3f(0.0,0.7,0.0);
 
-    // 1. FLATTEN SIDES (Shark Fin / Thorn shape)
-    // We make coordinate space 2x larger in Z...
     q.z *=7.0; 
-   // q.z *= (1-q.y);
-//    q.x += abs(q.y*q.y)*0.5; 
-q.x /= abs(q.y)*0.7; 
-q.x -= (1+q.y) * 1.5;
-//q.x += ; 
-//q.x +=//  (1-q.y)* (1-q.y); 
- //q.x += abs(q.y*q.y)*0.5; 
-    // ...then we bend it.
-//q.y += q.x * q.x * 2.0;
-    // 2. BEND DOWN
-  //  q.y += pow(max(q.x, 0.0), 2.0) * 1.5;
 
-let h = 1.0;
+    q.x /= abs(q.y)*0.7; 
+    q.x -= (1+q.y) * 1.5;
+
+
+    let h = 1.0;
     let r = 0.15;
 
 return sdCone(q, vec2f(r,r), h);
-    // 3. CONE SHAPE
-//    
- //   let q_cone = vec2f(length(q.yz), q.x);
-   // let d = max(dot(q_cone, normalize(vec2f(h, r))), q.x - h);
-
-    // 4. THE FIX: DISTANCE CORRECTION
-    // Since we multiplied Z by 2.0, we must divide the result by 2.0 (multiply by 0.5).
-    // Otherwise the ray overshoots and creates infinite streaks.
-   // return d * 0.5;
+ 
 }
 
 fn flower(p: vec3f, location: vec3f) -> vec2f {
 
+  let d_sphere = length(p - vec3f(0.0, 1.0, 0.0)) - 0.4;
+
+    if (d_sphere > 1.3) {
+        return vec2f(d_sphere,0);
+    }
 
   let time =uniforms.time;
 
@@ -597,12 +550,12 @@ fn flower(p: vec3f, location: vec3f) -> vec2f {
 
    let pos_all =  p - location;
     
-   let wind_bend = 0.3 + sin( 1.5 ) * 0.01; //0.2 + sin(time * 1.5) * 0.1; // Base bend 0.2, plus sway
+   let wind_bend = 0.3 + sin( 1.5 ) * 0.01; //0.2 + sin(time * 1.5) * 0.1; 
     
     let stem_start = vec3f(0.0, -location.y - 0.5, 0.0);
-let stem_end = center; // Ends exactly at flower center
+let stem_end = center; 
 
-// C. Call function
+
 //let d_stem = sdStem(pos_all, stem_start, stem_end, wind_bend, 0.04);
 let d_stem = sdStemWithSpines(pos_all, stem_start, stem_end, wind_bend, 0.04);
 
@@ -636,20 +589,20 @@ let d_stem = sdStemWithSpines(pos_all, stem_start, stem_end, wind_bend, 0.04);
    var rose = sdRose(pos+ vec3f(0.0, -0.03, 0.0)); //sdRose(pos);
    var bud = min(d_sepals, d_bud);
 
-    var d_greenery = smin(d_stem, d_sepals, 0.02);
+    var d_greenery = smin(d_stem.x, d_sepals, 0.02);
     d_greenery = smin(d_greenery, d_bud, 0.02);
 
 
-    // Combine with floor
+    
    let flower =min(rose,d_greenery);  //sdRose(pos);//  min(sdRose(pos),min(d, min(d_sepals, d_bud))) ; //min(d, min(d_sepals, d_bud)); 
 
-var material = MAT_STEM;
+    var material = d_stem.y;
 
 
-if( rose < d_greenery)
-{
-    material = MAT_ROSE;
-} 
+    if( rose < d_greenery)
+    {
+        material = MAT_ROSE;
+    } 
    return vec2f(flower, material);
 }
 
@@ -663,6 +616,13 @@ fn map(p_in: vec3f) -> vec2f {
     // 1. Ground
      var res = vec2f(p.y + 0.5, MAT_GROUND);
 
+    if(length( vec2f(p.x, p.z)) < 0.7)
+    {
+       
+        res = vec2f(p.y + 0.5 +sin(p.x*10)*0.02 +sin(3+p.z*13)*0.03+ sin(p.x*15)*0.01 +sin(p.z*18)*0.01+ sin(30+ p.x*110)*0.002 +sin(35+p.z*115)*0.002
+        + sin(10+ p.x*127)*0.001 +sin(5+p.z*123)*0.001, MAT_DIRT);
+    }
+
     let flower_pos = vec3f(0.0, 2.0, 0.0);
 
     let d_t =  flower(p, flower_pos);
@@ -672,82 +632,15 @@ fn map(p_in: vec3f) -> vec2f {
         res = vec2f(d_t.x, d_t.y); 
     }
 
-    // // 2. Stem
-    var p_stem = p;
-    p_stem.x = p_stem.x + sin(p_stem.y * 2.0) * 0.1;
-    p_stem.z = p_stem.z + cos(p_stem.y * 3.0) * 0.05;
-    
-    let stemRadius = 0.06  * smoothstep(2.5, 0.0, p_stem.y) + 0.01;
-    let d_stem = sdCappedCylinder(p_stem - vec3f(0.0, 1.0, 0.0), 1.2, stemRadius);
-    
-    //  if (d_stem < res.x) { 
-    //      res = vec2f(d_stem, MAT_STEM); 
-    //  }
-
-    // // 3. Leaves
-    // // Leaf 1
-    // var p_leaf1 = p - vec3f(0.1, 0.3, 0.1); 
-    
-    // // Manual rotation YZ
-    // let rot_leaf1_yz = rot2D(vec2f(p_leaf1.y, p_leaf1.z), 0.8);
-    // p_leaf1.y = rot_leaf1_yz.x;
-    // p_leaf1.z = rot_leaf1_yz.y;
-    
-    // // Manual rotation XZ
-    // let rot_leaf1_xz = rot2D(vec2f(p_leaf1.x, p_leaf1.z), 0.5);
-    // p_leaf1.x = rot_leaf1_xz.x;
-    // p_leaf1.z = rot_leaf1_xz.y;
-
-    // let d_leaf1 = sdEllipsoid(p_leaf1, vec3f(0.2, 0.02, 0.1));
-
-    // // Leaf 2
-    // var p_leaf2 = p - vec3f(-0.1, 0.8, -0.1);
-    
-    // // Manual rotation YZ
-    // let rot_leaf2_yz = rot2D(vec2f(p_leaf2.y, p_leaf2.z), 1.0);
-    // p_leaf2.y = rot_leaf2_yz.x;
-    // p_leaf2.z = rot_leaf2_yz.y;
-
-    // // Manual rotation XZ
-    // let rot_leaf2_xz = rot2D(vec2f(p_leaf2.x, p_leaf2.z), -2.0);
-    // p_leaf2.x = rot_leaf2_xz.x;
-    // p_leaf2.z = rot_leaf2_xz.y;
-    
-    // let d_leaf2 = sdEllipsoid(p_leaf2, vec3f(0.18, 0.02, 0.09));
-    
-    // let d_leaves = min(d_leaf1, d_leaf2);
-    // res.x = smin(res.x, d_leaves, 0.05);
-
-    // // 4. Rose Head
-    // var p_rose = p - vec3f(0.0, 2.2, 0.0);
-    // let r_rose = length(p_rose);
-    // let safe_r = max(r_rose, 0.001);
-    
-    // let theta = atan2(p_rose.z, p_rose.x); 
-    // let phi = acos(clamp(p_rose.y / safe_r, -1.0, 1.0)); 
-
-    // var petal_dist = r_rose - 0.35;
-    // petal_dist = petal_dist + sin(theta * 5.0 + phi * 3.0) * 0.03 * smoothstep(0.0, 1.0, phi);
-    // petal_dist = petal_dist + sin(theta * 13.0) * 0.01 * smoothstep(0.5, 0.0, phi);
-    
-    // let bud = sdSphere(p_rose - vec3f(0.0, 0.1, 0.0), 0.15);
-    
-    // let d_rose_final = smin(petal_dist, bud, 0.1);
-    // res.x = smin(res.x, d_rose_final, 0.1);
-    
-    // if (length(p - vec3f(0.0, 2.2, 0.0)) < 0.5) {
-    //      res.y = MAT_ROSE;
-    // }
-    // //  else if (d_leaves < d_stem + 0.1) {
-    // //      res.y = MAT_STEM;
-    // // }
+ 
+   
 
     return res; 
 }
 
 fn calc_normal(p: vec3f) -> vec3f {
     let e = 0.002;
-    // We manually construct the vectors to avoid swizzling confusion
+  
     let dx = map(p + vec3f(e, 0.0, 0.0)).x - map(p - vec3f(e, 0.0, 0.0)).x;
     let dy = map(p + vec3f(0.0, e, 0.0)).x - map(p - vec3f(0.0, e, 0.0)).x;
     let dz = map(p + vec3f(0.0, 0.0, e)).x - map(p - vec3f(0.0, 0.0, e)).x;
@@ -755,40 +648,50 @@ fn calc_normal(p: vec3f) -> vec3f {
     return normalize(vec3f(dx, dy, dz));
 }
 
-fn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32) -> f32 {
-	var res = 1.0;
+// fn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32) -> f32 {
+// 	var res = 1.0;
+//     var t = mint;
+//     for(var i=0; i<16; i++) {
+// 		let h = map(ro + rd*t).x;
+//         res = min( res, 8.0*h/t );
+//         t += clamp( h, 0.01, 0.10 );
+//         if( h<0.001 || t>tmax ) { break; }
+//     }
+//     return clamp( res, 0.0, 1.0 );
+// }
+fn softshadow(ro: vec3f, rd: vec3f, mint: f32, tmax: f32, k: f32) -> f32 {
+    var res = 1.0;
     var t = mint;
-    for(var i=0; i<16; i++) {
-		let h = map(ro + rd*t).x;
-        res = min( res, 8.0*h/t );
-        t += clamp( h, 0.02, 0.10 );
-        if( h<0.001 || t>tmax ) { break; }
+    var ph = 1e20; // "Previous h" - start with a huge number
+
+    for(var i = 0; i < 16; i++) { // Increased iterations for accuracy
+        let h = map(ro + rd * t).x;
+
+        // --- The Accuracy Fix ---
+        // Instead of just min(res, k*h/t), we calculate the 
+        // distance from the ray SEGMENT to the object.
+        // This effectively removes banding/striations in the shadow.
+        
+        let y = h * h / (2.0 * ph); 
+        let d = sqrt(h * h - y * y);
+        res = min(res, k * d / max(0.0, t - y));
+        
+        // ------------------------
+
+        ph = h;
+        
+        // Note: For your Rose Leaf, because of domain warping, 
+        // the SDF is not exact. Multiply h by ~0.8 to prevent artifacts.
+        t += h; 
+        
+        if(res < 0.001 || t > tmax) { break; }
     }
-    return clamp( res, 0.0, 1.0 );
+    
+    // Smoothstep creates a cleaner falloff from light to dark
+    res = clamp(res, 0.0, 1.0);
+    return res * res * (3.0 - 2.0 * res); 
 }
 
-fn hash12(p: vec2f) -> f32 {
-    var p3  = fract(vec3f(p.xyx) * .1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
-}
-fn bayer4x4(p: vec2f) -> f32 {
-    let x = u32(p.x) % 4;
-    let y = u32(p.y) % 4;
-    let index = x + y * 4;
-    
-    // The matrix values [0..15]
-    var m = array<f32, 16>(
-         0.0, 12.0,  3.0, 15.0,
-         8.0,  4.0, 11.0,  7.0,
-         2.0, 14.0,  1.0, 13.0,
-        10.0,  6.0,  9.0,  5.0
-    );
-    
-    // Return normalized value (0.0 to 1.0)
-    // We multiply by 1.0/16.0
-    return m[index] * 0.0625; 
-}
 @fragment
 
 fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
@@ -801,12 +704,12 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
 
     let time = uniforms.time * 2.0 ;
 
-    let yaw = uniforms.camera.x;
-    let pitch = uniforms.camera.y;
+    let yaw =  uniforms.yaw ;   //uniforms.camera.x;
+    let pitch =0.5 +   clamp(uniforms.pitch,-1,1)*0.1; //uniforms.camera.y;
     let radius = 2.0;
    let ro = vec3f(
         radius * cos(pitch) * sin(yaw),
-        radius * sin(pitch) + 2.0, // +2.0 to keep height relative to lookAt
+        radius * sin(pitch) + 2.0, 
         radius * cos(pitch) * cos(yaw)
     ) + vec3f(0.0, 0.0, 0.0);
 
@@ -843,45 +746,44 @@ fn fs_main(@builtin(position) pos: vec4f) -> @location(0) vec4f {
         let p = ro + rd * t;       
         let normal = calc_normal(p); 
         
-        let light_pos = vec3f(2.0, 2.0, -3.0);
+        let light_pos = vec3f(4.0, 5.0, 0.0);
         let light_dir = normalize(light_pos - p);
         
         let diff = clamp(dot(normal, light_dir), 0.1, 1.0);
-        let shadow = softshadow(p + normal * 0.01, light_dir, 0.02, length(light_pos - p));
+       let shadow = softshadow(p + normal * 0.01, light_dir, 0.02, length(light_pos - p), 16.0);
 
         var albedo = vec3f(0.0);
         
         if (abs(mat_id - MAT_GROUND) < 0.1) {
             albedo = vec3f(0.2, 0.2, 0.2);  
+           
         } else if (abs(mat_id - MAT_STEM) < 0.1) {
-            albedo = vec3f(0.05, 0.1, 0.02);
+            albedo = vec3f(0.05, 0.1, 0.02)*0.8;
         } else if (abs(mat_id - MAT_ROSE) < 0.1) {
-            let height_factor = smoothstep(2.0, 2.4, p.y);
-            albedo =vec3f(0.2, 0.02, 0.1);  //mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);
+          //  let height_factor = smoothstep(2.0, 2.4, p.y);
+            albedo =vec3f(0.15, 0.02, 0.05)*0.8;  //mix(vec3f(0.6, 0.0, 0.05), vec3f(0.9, 0.05, 0.1), height_factor);
         }
-        
+        else if (abs(mat_id - MAT_DIRT) < 0.1) {
+           albedo = vec3f(0.1, 0.07, 0.0)*0.8;   
+        }
 
         
-        let ambient = vec3f(0.3) * albedo;
-        let diffuse = albedo * diff * vec3f(1.0, 0.95, 0.8);// * shadow; 
+        let ambient = vec3f(0.6) * albedo;
+        let diffuse = albedo * diff * vec3f(1.0, 0.95, 0.8)* shadow;// ; 
         
         final_color = ambient + diffuse;
         final_color = mix(final_color, vec3f(0.0, 0.0, 0.0), 1.0 - exp(-0.01 * t * t));
     }
 
-  //  final_color = pow(final_color, vec3f(1.0/2.2));
 
-
-//let noise = hash12(pos.xy + uniforms.time);
+   let noise = hash12(pos.xy + uniforms.time);
     
-    // 2. Add to Color
-    // (noise - 0.5) makes it center around 0 (range -0.5 to 0.5)
-    // 0.05 is the STRENGTH. Try 0.02 for subtle, 0.1 for gritty.
- //   final_color += (noise - 0.5) * 0.3;
+ 
+    final_color += (noise - 0.5) * (25.0 / 255.0);
 
 
-    // Gamma Correction (Standard practice if you haven't added it yet)
-    // final_color = pow(final_color, vec3f(1.0/2.2));
+    return vec4f(final_color, 1.0);
+
 
     return vec4f(final_color, 1.0);
  

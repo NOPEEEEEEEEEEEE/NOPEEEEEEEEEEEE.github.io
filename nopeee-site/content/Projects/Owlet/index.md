@@ -1,6 +1,6 @@
 ---
 title: "Owlet / PEPI engine"
-summary: " RTS game made using custom engine"
+summary: " RTS game made using the PEPI custom engine"
 categories: ["Project"]
 tags: ["project"]
 #externalUrl: ""

@@ -2,8 +2,19 @@
   async function initWebGPU() {
     
     // --- 1. CHECKS ---
-    const isHome = document.body.classList.contains('home') || window.location.pathname === "/";
-    if (!isHome) return;
+    
+  const allowedPaths = [
+        "/",         
+        "/about/",   
+        "/projects/",
+        "/articles/"    
+    ];
+
+    // Check if the current URL is in that list
+    // We strictly check the pathname (URL)
+    const shouldRun = allowedPaths.includes(window.location.pathname);
+
+    if (!shouldRun) return;
     if (!navigator.gpu) { console.log("WebGPU not supported"); return; }
 
     // --- 2. SETUP CANVAS ---
@@ -73,8 +84,10 @@
   // Camera Angles (Default view)
   // Yaw: Rotation around Y axis
   // Pitch: Up/Down look
-  let cameraYaw = 0.5; 
+  let Multiplier = 0.5; 
   let cameraPitch = 0.5; 
+
+  let cameraYaw = 0; // The accumulated angle
 
   // --- MOUSE EVENT LISTENERS ---
   window.addEventListener("mousedown", (e) => {
@@ -88,6 +101,9 @@
   });
 
   window.addEventListener("mousemove", (e) => {
+
+    Multiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+         cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
       if (!isDragging) return;
 
       const sensitivity = 0.005;
@@ -95,12 +111,12 @@
       const deltaY = e.clientY - lastMouseY;
 
       // Update angles
-      cameraYaw -= deltaX * sensitivity;
-      cameraPitch += deltaY * sensitivity;
+    // cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
+    //  cameraPitch += deltaY * sensitivity;
 
       // Clamp Pitch so you don't flip upside down
       // Limit between -89 degrees and +89 degrees (in radians)
-      cameraPitch = Math.max(-1.5, Math.min(1.5, cameraPitch));
+    //  cameraPitch = Math.max(-1.5, Math.min(1.5, cameraPitch));
 
       lastMouseX = e.clientX;
       lastMouseY = e.clientY;
@@ -109,8 +125,8 @@
 
   // --- 7. RESIZE HANDLER ---
   const resize = () => {
-    const w = window.innerWidth;
-    const h = window.innerHeight;
+    const w = window.innerWidth/2;
+    const h = window.innerHeight/2;
     canvas.width = w;
     canvas.height = h;
     context.configure({
@@ -124,9 +140,31 @@
   window.addEventListener("resize", resize);
   resize(); 
 
+
+  let lastTime = performance.now() / 1000;
+
   function frame() {
     const time = performance.now() / 1000;
     
+
+
+    const dt = time - lastTime;
+    lastTime = time;
+
+  
+    let speed = Multiplier * 1.7;
+
+
+    const minSpeed = 0.2; 
+
+    if (speed >= 0 && speed < minSpeed) {
+        speed = minSpeed;
+    } else if (speed < 0 && speed > -minSpeed) {
+        speed = -minSpeed;
+    }
+    
+    cameraYaw += speed * dt;
+
     // Update Uniform Array
     uniformValues[2] = time;       // Time
     uniformValues[4] = cameraYaw;  // Camera Yaw
