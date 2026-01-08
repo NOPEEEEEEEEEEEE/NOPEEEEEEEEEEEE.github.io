@@ -19,61 +19,61 @@ Throughout this project I learned a bunch of new things, such as developing mult
 Since our team lacked a VFX artist, I took upon this role, applying my shader experience to using Niagara. I would regularly receive feedback from the Visual Artists in our team, ensuring that the effects are cohesive with the rest of the game. 
 
 #### Ammo Box 
-![alt text](../UmbraMortisWork/AmmoBox.gif)
+![alt text](../umbramortiswork/AmmoBox.gif)
 
 #### Bell Aura 
-![alt text](../UmbraMortisWork/Bell.gif)
+![alt text](../umbramortiswork/Bell.gif)
 
 #### Disease Visualization
 
-![alt text](../UmbraMortisWork/HealthDebuf.gif)
+![alt text](../umbramortiswork/HealthDebuf.gif)
 
 #### Key Pickup
 
-![alt text](../UmbraMortisWork/KeyPickup.gif)
+![alt text](../umbramortiswork/KeyPickup.gif)
 
 #### Bell AOE Visualization
 
-![alt text](../UmbraMortisWork/Morale.gif)
+![alt text](../umbramortiswork/Morale.gif)
 
 #### Dissolving Effect
 
-![alt text](../UmbraMortisWork/PlayerDissolve.gif)
-![alt text](../UmbraMortisWork/DifColorsAfter.gif)
+![alt text](../umbramortiswork/PlayerDissolve.gif)
+![alt text](../umbramortiswork/DifColorsAfter.gif)
 
 #### Canals Water
 
 The water is reactive to the environment, creating waves around objects that have contact with it.
 
 
-![alt text](../UmbraMortisWork/WaterWaves.gif)
+![alt text](../umbramortiswork/WaterWaves.gif)
 
-![alt text](../UmbraMortisWork/WaterWaves2.gif)
+![alt text](../umbramortiswork/WaterWaves2.gif)
 
 #### THE STINKY FISH (my proudest achievement so far)
 
-![alt text](../UmbraMortisWork/StinkyFish.gif)
+![alt text](../umbramortiswork/StinkyFish.gif)
 
 ### Gameplay
 
 #### Lobby Practice Targets
 
 
-![alt text](../UmbraMortisWork/Targets.gif)
+![alt text](../umbramortiswork/Targets.gif)
 
 #### Headshot Hitmarkers
 
 Working on this lead to discovery that the shooting was not reliable and accurate for all the players in a session, which we eventually fixed.
 
-![alt text](../UmbraMortisWork/HitMarkHeadshots.gif)
+![alt text](../umbramortiswork/HitMarkHeadshots.gif)
 
 #### Teammate Outline Post Process
 
-![alt text](../UmbraMortisWork/MatchingColors.gif)
+![alt text](../umbramortiswork/MatchingColors.gif)
 
 #### Downed Post Process
 
-![alt text](../UmbraMortisWork/DownedPost1.gif)
+![alt text](../umbramortiswork/DownedPost1.gif)
 
 
 ### Networking
@@ -88,9 +88,9 @@ In the early stages of the project, when the vision was not yet clear, I decided
 
 I made use of a depth stencil buffer to create a ghosting effect and a scanning effect.
 
-![alt text](../UmbraMortisWork/RKub.gif)
+![alt text](../umbramortiswork/RKub.gif)
 
-![alt text](../UmbraMortisWork/PingScan.gif)
+![alt text](../umbramortiswork/PingScan.gif)
 
 The research I did with those has lead me to start working on this project: 
 

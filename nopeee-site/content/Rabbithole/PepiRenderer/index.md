@@ -13,28 +13,28 @@ draft: false
 
 A renderer developed in 16 weeks (on top of a hybrid ray tracing renderer, which took another 16 weeks) for the PEPI engine, which was then used to create Owlet, a small  RTS game.
 
-![alt text](../PepiRenderer/FinalLook.png)
+![alt text](../pepirenderer/FinalLook.png)
 
 ### Ray-Traced Shadows
 
 I made use of my hybrid ray tracing pipeline to trace shadow rays, allowing for soft shadows.
 
-![alt text](../PepiRenderer/Shadows.png)
+![alt text](../pepirenderer/Shadows.png)
 
-![alt text](../PepiRenderer/Shadows.gif)
+![alt text](../pepirenderer/Shadows.gif)
 
 
 ### Bloom
 
 I made use of compute shaders, doing one horizontal and one vertical pass, creating the bloom effect for colors with emissive values.
 
-![alt text](../PepiRenderer/Bloom.png)
+![alt text](../pepirenderer/Bloom.png)
 
 ### Blended Skeletal Animations
 
 The renderer allows smoothly blending between multiple skeletal animations
 
-![alt text](../PepiRenderer/anims.gif)
+![alt text](../pepirenderer/anims.gif)
 
 
 
@@ -43,27 +43,27 @@ The renderer allows smoothly blending between multiple skeletal animations
 
 The UI system was initially implemented in OpenGL(by another programmer in our team). I ported this complex system to DX12, keeping all its functionality intact.
 
-![alt text](../PepiRenderer/UI_ed.png)
+![alt text](../pepirenderer/UI_ed.png)
 
 ### Mesh Instancing
 
 The renderer makes use of instanced rendering, allowing to renderer all the identical meshes in one single draw call. Great for particle systems, but also great for RTS games that have a bunch of identical meshes.
 
-![alt text](../PepiRenderer/Particles.gif)
+![alt text](../pepirenderer/Particles.gif)
 
 ### Compatibility with Editor Tools
 
 The renderer can be used to render in real time all the changes made by the editor, such as editing lights, modifying meshes and materials and the terrain editor.
 
-![alt text](../PepiRenderer/Lights.gif)
+![alt text](../pepirenderer/Lights.gif)
 
-![alt text](../PepiRenderer/terrain.gif)
+![alt text](../pepirenderer/terrain.gif)
 
 ### Indexed Materials
 
 This allows instanced rendering while still being able to have different materials on instanced meshes.
 
-![alt text](../PepiRenderer/IndexedMats.gif)
+![alt text](../pepirenderer/IndexedMats.gif)
 
 
 
@@ -79,7 +79,7 @@ Made use of compute shaders to generate mip maps for all the textures.
 
 For the first 8 weeks of the project, the engine could run on a steamdeck. We eventually abandoned it, as the project requirements did not ask for multiple platform support of the engine anymore.
 
-![alt text](../PepiRenderer/SteamDeck.gif)
+![alt text](../pepirenderer/SteamDeck.gif)
 
 
 

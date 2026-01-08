@@ -24,7 +24,7 @@ draft: false
 
 My very first project at BUAS in Year 1. A 2D RTS tank game, rendered on the CPU and making use of an Open GL template to display the image. 
 
-![alt text](../2DRTS/Combat_AI.gif)
+![alt text](../2drts/Combat_AI.gif)
  
 # Goals
 
@@ -33,7 +33,7 @@ My very first project at BUAS in Year 1. A 2D RTS tank game, rendered on the CPU
  - Getting exposed to some basic concepts involved in game development, like AI implementation, sprite rendering and collision detection
 
 
-![alt text](../2DRTS/Local_col2.gif)
+![alt text](../2drts/Local_col2.gif)
 
 
 
@@ -47,4 +47,4 @@ My very first project at BUAS in Year 1. A 2D RTS tank game, rendered on the CPU
 - Unit local collision
 - Procedural map generation, with rivers, valeys and forests
 
-![alt text](../2DRTS/procedural_map.gif)
+![alt text](../2drts/procedural_map.gif)

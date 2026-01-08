@@ -21,7 +21,7 @@ draft: false
 
 This is a 2D Ray Tracer I implemented as my third project at BUAS in my first year. The renderer operates entirely on the CPU, making use of an Open GL template to display the image. I then build a simple car game to showcase the capabilites of the renderer
 
-![alt text](../2DRayTracer/W7_light_show.gif)
+![alt text](../2draytracer/W7_light_show.gif)
 
 
 # Goals
@@ -32,7 +32,7 @@ This is a 2D Ray Tracer I implemented as my third project at BUAS in my first ye
 
 - Improving C++ skills and gaining experience with CPU-based algorithm optimization techniques
 
-![alt text](../2DRayTracer/W6_Perf_Mirrors_Many_Prim.gif)
+![alt text](../2draytracer/W6_Perf_Mirrors_Many_Prim.gif)
 
 
 # Features
@@ -51,4 +51,4 @@ This is a 2D Ray Tracer I implemented as my third project at BUAS in my first ye
 
 - A really cool car game that makes use of those features
 
-![alt text](../2DRayTracer/W8_Gameplay.gif)
+![alt text](../2draytracer/W8_Gameplay.gif)

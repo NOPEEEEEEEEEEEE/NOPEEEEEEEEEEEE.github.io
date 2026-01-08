@@ -20,7 +20,7 @@ draft: false
 
 Galactic Goo is a plaform puzzle game made in UE5 in my first year. This was my first experience working in a multidisciplinary team.
 
-![alt text](../GalacticGoo/Final_Gameplay.gif)
+![alt text](../galacticgoo/Final_Gameplay.gif)
 
 # Goals
 

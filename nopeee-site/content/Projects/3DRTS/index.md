@@ -25,9 +25,9 @@ draft: false
 
  This was my second project at BUAS. We have taken the first project up a notch, turning it into a 3D game, runing on a Raspberry Pi and making use of a physics engine. 
 
-![alt text](../3DRTS/Bullet_Callback_Fighting.gif)
+![alt text](../3drts/Bullet_Callback_Fighting.gif)
 
-![alt text](../3DRTS/Menu_Diff_and_delete.gif)
+![alt text](../3drts/Menu_Diff_and_delete.gif)
 
 # Goals
 
@@ -39,7 +39,7 @@ draft: false
 
 - Getting to learn how to use ImGui, preparing me for future projects 
 
-![alt text](../3DRTS/Selection_Det_Callcack.gif)
+![alt text](../3drts/Selection_Det_Callcack.gif)
 
 
 # Features
@@ -57,4 +57,4 @@ draft: false
 - Multiple game modes
 
 
-![alt text](../3DRTS/Flag_Names.gif)
+![alt text](../3drts/Flag_Names.gif)
