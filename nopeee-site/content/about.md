@@ -17,12 +17,17 @@ showAuthor: false
 
 {{< lead >}}
 
-I am mostly confused. But I also enjoy coding, painting and making music. I treat everything I do as an art. 
+I am mostly confused. But I also enjoy coding, painting, playing guitar and making music. I treat everything I do as a from of art. Did I mention I'm a philosopher?
 {{< /lead >}}
 
 
-  
+### Some other potentially useful information about me
 
+{{< lead >}}
+
+I am a Games student in Y4 at BUAS. I have specialized as a graphics programmer, but my learning ability is flexible and I am open to trying out new things. I also have some experience with working in multidisciplinary teams and developing games in Unreal Engine 5, throughout all their development stages.
+  
+{{< /lead >}}
 
 
 <h3 align="center"> Languages</h3>
