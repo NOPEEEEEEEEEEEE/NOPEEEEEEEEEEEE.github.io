@@ -102,7 +102,12 @@
 
   window.addEventListener("mousemove", (e) => {
 
-    Multiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+   let rawMultiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+
+    // 2. Clamp it strictly between -1.0 and 1.0
+    // Math.max(-1, ...) prevents it from going lower than -1
+    // Math.min(1, ...) prevents it from going higher than 1
+    Multiplier = Math.max(-1.0, Math.min(1.0, rawMultiplier));
          cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
       if (!isDragging) return;
 
@@ -152,7 +157,7 @@
     lastTime = time;
 
   
-    let speed = Multiplier * 1.7;
+    let speed = Multiplier * 1.5;
 
 
     const minSpeed = 0.2; 

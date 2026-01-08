@@ -15,7 +15,7 @@ draft: false
 
 This was my second project in my second year at BUAS, a deferred hybrid ray tracer I have built on top of a basic PBR DX12 renderer(which was my first project of Y2), using DXR.
 
-![alt text](../HybridRayTracer/All.png)
+![alt text](../hybridraytracer/All.png)
 
 # Goals
 
@@ -30,7 +30,7 @@ This was my second project in my second year at BUAS, a deferred hybrid ray trac
 - Exploring a modern rendering technique
 
 
-![alt text](../HybridRayTracer/PBR.png)
+![alt text](../hybridraytracer/PBR.png)
 # Features
 
 ---
@@ -46,7 +46,7 @@ This was my second project in my second year at BUAS, a deferred hybrid ray trac
 - Reflections
 
 
-![alt text](../HybridRayTracer/Hybrid_RTs.png) 
+![alt text](../hybridraytracer/Hybrid_RTs.png) 
 
 
 # Implementation

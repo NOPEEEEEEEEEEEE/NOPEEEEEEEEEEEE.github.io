@@ -629,7 +629,7 @@
 
 
 <figure>
-    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../HybridRayTracer/All.png">
+    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../hybridraytracer/All.png">
 
   
 </figure>
@@ -667,7 +667,7 @@
 
 
 <figure>
-    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../HybridRayTracer/PBR.png">
+    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../hybridraytracer/PBR.png">
 
   
 </figure>
@@ -708,7 +708,7 @@
 
 
 <figure>
-    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../HybridRayTracer/Hybrid_RTs.png">
+    <img class="my-0 rounded-md" loading="lazy" alt="alt text" src="../hybridraytracer/Hybrid_RTs.png">
 
   
 </figure>
@@ -1461,7 +1461,12 @@
 
   window.addEventListener("mousemove", (e) => {
 
-    Multiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+   let rawMultiplier = (e.clientX / window.innerWidth) * 2.0 - 1.0;
+
+    
+    
+    
+    Multiplier = Math.max(-1.0, Math.min(1.0, rawMultiplier));
          cameraPitch = (e.clientY / window.innerHeight) * 2.0 - 1.0;
       if (!isDragging) return;
 
@@ -1511,7 +1516,7 @@
     lastTime = time;
 
   
-    let speed = Multiplier * 1.7;
+    let speed = Multiplier * 1.5;
 
 
     const minSpeed = 0.2; 
