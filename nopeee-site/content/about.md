@@ -17,7 +17,7 @@ showAuthor: false
 
 {{< lead >}}
 
-I am mostly confused. But I also enjoy coding, painting, playing guitar and making music. I treat everything I do as a from of art. Did I mention I'm a philosopher?
+I am mostly confused. But I also enjoy coding, painting, playing guitar and making music. I treat everything I do as a form of art. Did I mention I'm a philosopher?
 {{< /lead >}}
 
 
